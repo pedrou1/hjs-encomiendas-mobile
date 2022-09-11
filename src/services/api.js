@@ -3,7 +3,7 @@ import Config from 'react-native-config';
 
 // FIXME falta configurar el .env
 const api = axios.create({
-	baseURL: 'https://hjsencomiendas.azurewebsites.net/',
+	baseURL: process.env.API_BASE,
 	headers: {
 		'Content-Type': 'application/json',
 	},

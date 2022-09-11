@@ -7,7 +7,7 @@ import MapView, { Marker, Callout, Polyline } from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import MapViewDirections from 'react-native-maps-directions';
 
-const GOOGLE_API_KEY = '';
+const GOOGLE_API_KEY = process.env.PLACES_API_BASE.toString();
 
 export default function ({ navigation }) {
 	const { setUser } = useContext(AuthContext);
@@ -25,8 +25,8 @@ export default function ({ navigation }) {
 	});
 
 	const [coordinates, setCoordinates] = useState([
-		{ name: 'Direccion1', cliente: 'Juan Perez', latitude: -34.90703478690642, longitude: -56.200666546312526 },
-		{ name: 'Direccion2', cliente: 'Juan Perez', latitude: -34.906894010482546, longitude: -56.19176161236216 },
+		{ name: 'Direccion1', cliente: 'Juan Perez', latitude: -34.90703478690642, longitude: -56.200666546312526, key: 'Direccion1' },
+		{ name: 'Direccion2', cliente: 'Juan Perez', latitude: -34.906894010482546, longitude: -56.19176161236216, key: 'Direccion2' },
 	]);
 
 	const onMarkerPressed = (marker, index) => {};
@@ -91,7 +91,8 @@ export default function ({ navigation }) {
 						<MapViewDirections
 							strokeColor="#ed4c4c"
 							strokeWidth={6}
-							resetOnChange={true}
+							// resetOnChange={true}
+							optimizeWaypoints={true}
 							origin={coordinates[0]}
 							waypoints={coordinates.slice(1, -1)}
 							destination={coordinates[coordinates.length - 1]}
