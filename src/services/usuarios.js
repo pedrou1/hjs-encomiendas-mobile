@@ -9,3 +9,12 @@ export const iniciarSesion = async (usuario) => {
 		}
 	} catch (err) {}
 };
+
+export const obtenerUsuarios = async (params) => {
+	try {
+		const res = await api.get(`${controllerEndpoint}`, { params });
+		if (res.status == 200) {
+			return res.data;
+		}
+	} catch (err) {}
+};

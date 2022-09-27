@@ -11,6 +11,10 @@ import Perfil from '../screens/Perfil';
 import Loading from '../screens/utils/Loading';
 import Login from '../screens/auth/Login';
 import { AuthContext } from '../provider/AuthProvider';
+import CrearPedido from '../screens/CrearPedido';
+import Clientes from '../screens/SeleccionarClientes';
+import TiposPedidos from '../screens/SeleccionarTipoPedido';
+import SeleccionarDireccion from '../screens/SeleccionarDireccion';
 
 const AuthStack = createNativeStackNavigator();
 const Auth = () => {
@@ -33,8 +37,12 @@ const Main = () => {
 				headerShown: false,
 			}}
 		>
-			<MainStack.Screen name="MainTabs" component={MainTabs} />
+			<MainStack.Screen name="Inicio" component={Inicio} />
 			<MainStack.Screen name="PantallaTest" component={PantallaTest} />
+			<MainStack.Screen name="CrearPedido" component={CrearPedido} />
+			<MainStack.Screen name="Clientes" component={Clientes} />
+			<MainStack.Screen name="TiposPedidos" component={TiposPedidos} />
+			<MainStack.Screen name="SeleccionarDireccion" component={SeleccionarDireccion} />
 		</MainStack.Navigator>
 	);
 };
@@ -52,11 +60,12 @@ const MainTabs = () => {
 			}}
 		>
 			<Tabs.Screen
-				name="Inicio"
-				component={Inicio}
+				name="MainTabs"
+				component={Main}
 				options={{
 					tabBarLabel: ({ focused }) => <TabBarText focused={focused} title="Inicio" />,
 					tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} icon={'md-home'} />,
+					tabBarHideOnKeyboard: true,
 				}}
 			/>
 			<Tabs.Screen
@@ -81,12 +90,16 @@ const MainTabs = () => {
 
 export default () => {
 	const { user } = useContext(AuthContext);
+	const [loading, setLoading] = React.useState(true);
+	setTimeout(() => {
+		setLoading(false);
+	}, 1500);
 
 	return (
 		<NavigationContainer>
-			{!user && <Auth />}
-			{/* <Loading /> */}
-			{user && <Main />}
+			{!user && !loading && <Auth />}
+			{loading && <Loading />}
+			{user && !loading && <MainTabs />}
 		</NavigationContainer>
 	);
 };
