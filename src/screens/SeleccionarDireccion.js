@@ -38,7 +38,6 @@ export default function ({ navigation }) {
 	}, []);
 
 	useEffect(() => {
-		console.log(autocompleteRef.current.isFocused());
 		if (autocompleteRef.current && autocompleteRef.current?.isFocused()) {
 			bottomSheetRef.current?.snapToIndex(1);
 		}
@@ -52,14 +51,14 @@ export default function ({ navigation }) {
 				<MapView initialRegion={montevideoCoords} ref={mapViewRef} style={styles.map} provider="google" showsUserLocation followsUserLocation>
 					{direccion && (
 						<Marker
-							key={direccion.name}
+							key={direccion.nombreDireccion}
 							onPress={() => onMarkerPressed(direccion)}
 							coordinate={direccion ? { latitude: direccion.latitude, longitude: direccion.longitude } : {}}
 							ref={calloutRef}
 						>
 							<Callout>
 								<View>
-									<Text style={{ fontSize: 15 }}>{direccion.name}</Text>
+									<Text style={{ fontSize: 15 }}>{direccion.nombreDireccion}</Text>
 								</View>
 							</Callout>
 						</Marker>
@@ -101,7 +100,7 @@ export default function ({ navigation }) {
 								autocompleteRef.current?.setAddressText(data.description.substring(0, 65));
 								bottomSheetRef.current?.collapse();
 								setDireccion({
-									name: data.description,
+									nombreDireccion: data.description,
 									latitude: details.geometry.location.lat,
 									longitude: details.geometry.location.lng,
 								});
@@ -170,7 +169,7 @@ const toInputBoxStyle = StyleSheet.create({
 	},
 	textInput: {
 		backgroundColor: '#DDDDDF',
-		borderRadius: 0,
+		borderRadius: 5,
 		fontSize: 18,
 	},
 	textInputContainer: {

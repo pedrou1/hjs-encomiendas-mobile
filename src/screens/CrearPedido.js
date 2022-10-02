@@ -5,7 +5,10 @@ import { AuthContext } from '../provider/AuthProvider';
 import { Formik } from 'formik';
 import * as yup from 'yup';
 import { Ionicons } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Chip, Text as TextPaper } from 'react-native-paper';
+import * as pedidos from '../services/pedidos';
+import * as Constantes from '../utils/Constantes';
 
 export default function ({ route, navigation }) {
 	const { user, setUser } = useContext(AuthContext);
@@ -63,28 +66,39 @@ export default function ({ route, navigation }) {
 										idChofer: cliente.idCliente,
 										idCliente: cliente.idCliente,
 										tarifa: tarifa,
-										tipoPedido: tipoPedido.idTipoPedido,
+										idTipoPedido: tipoPedido.idTipoPedido,
 										longitude: direccion.longitude,
 										latitude: direccion.latitude,
-										name: direccion.name,
-										key: direccion.name,
-										cliente: cliente.nombre,
+										nombreDireccion: direccion.nombreDireccion,
+										key: direccion.nombreDireccion,
+										nombreCliente: cliente.nombre,
 									};
-									navigation.navigate('Inicio', {
-										pedidoIngresado,
-									});
-									console.log(pedidoIngresado);
+
+									const pedidoIngresadoParsedServidor = {
+										...values,
+										idChofer: cliente.idCliente,
+										idCliente: cliente.idCliente,
+										tarifa: parseInt(tarifa),
+										idTipoPedido: tipoPedido.idTipoPedido,
+										longitude: direccion.longitude,
+										latitude: direccion.latitude,
+										nombreDireccion: direccion.nombreDireccion,
+										idTransporte: 2,
+									};
+
+									const res = await pedidos.registrarPedido(pedidoIngresadoParsedServidor);
+									console.log(res);
+									if (res.operationResult == Constantes.SUCCESS) {
+										navigation.navigate('Inicio', {
+											pedidoIngresado,
+										});
+									} else if (res.operationResult == Constantes.ERROR) {
+										//FIXME MENSAJE ERROR
+									}
+
 									// const res = pedido
 									// 	? await servicioPedidos.modificarPedido(pedidoIngresado)
 									// 	: await servicioPedidos.registrarPedido(pedidoIngresado);
-
-									// if (res.operationResult == Constantes.SUCCESS) {
-									// 	navigate('/pedidos');
-									// 	toast.success(`Pedido ${pedido ? 'modificado' : 'creado'} correctamente`);
-									// } else if (res.operationResult == Constantes.ERROR) {
-									// 	toast.error('Ha ocurrido un error');
-									// 	navigate('/error');
-									// }
 								} else {
 									// toast.error('Ingrese los datos');
 								}
@@ -108,9 +122,12 @@ export default function ({ route, navigation }) {
 											navigation.navigate('SeleccionarDireccion');
 										}}
 									>
-										<Chip style={{ padding: 10, marginTop: 2 }} icon={direccion ? 'check' : 'information'}>
+										<Chip
+											icon={() => <Icon name={direccion ? 'check-bold' : 'information'} size={16} color="black" />}
+											style={{ padding: 10, marginTop: 2, backgroundColor: '#c9daff' }}
+										>
 											<TextPaper variant="titleMedium">
-												{direccion ? direccion.name : 'Haz click para selecionar una direccion'}
+												{direccion ? direccion.nombreDireccion : 'Haz click para selecionar una direccion'}
 											</TextPaper>
 										</Chip>
 									</TouchableOpacity>
@@ -121,7 +138,10 @@ export default function ({ route, navigation }) {
 											navigation.navigate('Clientes');
 										}}
 									>
-										<Chip style={{ padding: 10, marginTop: 2 }} icon={cliente?.nombre ? 'check' : 'information'}>
+										<Chip
+											style={{ padding: 10, marginTop: 2, backgroundColor: '#c9daff' }}
+											icon={() => <Icon name={cliente?.nombre ? 'check-bold' : 'information'} size={17} color="black" />}
+										>
 											<TextPaper variant="titleMedium">
 												{cliente?.nombre ? cliente.nombre : 'Haz click para selecionar un usuario'}
 											</TextPaper>
@@ -138,7 +158,10 @@ export default function ({ route, navigation }) {
 											navigation.navigate('TiposPedidos');
 										}}
 									>
-										<Chip style={{ padding: 10, marginTop: 2 }} icon={tipoPedido?.nombre ? 'check' : 'information'}>
+										<Chip
+											style={{ padding: 10, marginTop: 2, backgroundColor: '#c9daff' }}
+											icon={() => <Icon name={tipoPedido?.nombre ? 'check-bold' : 'information'} size={17} color="black" />}
+										>
 											<TextPaper variant="titleMedium">
 												{tipoPedido?.nombre ? tipoPedido.nombre : 'Haz click para selecionar un tipo'}
 											</TextPaper>
