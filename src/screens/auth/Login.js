@@ -7,6 +7,7 @@ import { AuthContext } from '../../provider/AuthProvider';
 import { Formik } from 'formik';
 import * as yup from 'yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as servicioUnidad from '../../services/unidad';
 
 export default function ({ navigation }) {
 	const { user, setUser } = useContext(AuthContext);
@@ -38,17 +39,29 @@ export default function ({ navigation }) {
 						}}
 						validationSchema={formSchema}
 						onSubmit={async (values, e) => {
+							setLoading(true);
 							const res = await servicioUsuarios.iniciarSesion(values);
-
-							if (!res) Alert.alert('Ha ocurrido un error, contacte al administrador');
+							if (!res) Alert.alert('Error', 'Ha ocurrido un error, contacte al administrador');
 
 							if (res && res.operationResult == Constantes.SUCCESS) {
+								if (!res.usuario.idCategoria == Constantes.PERMISO_ADMINISTRADOR || !res.usuario.idCategoria == Constantes.PERMISO_CHOFER) {
+									Alert.alert('Error', 'No tienes el permiso necesario para ingresar, contacte al administrador');
+									setLoading(false);
+									return;
+								}
 								await AsyncStorage.setItem('token', res.jwtToken);
-								await AsyncStorage.setItem('usuario', JSON.stringify(res.usuario));
-								setUser(res.usuario);
+								const unidadUsuario = await servicioUnidad.otenerUnidadDeChofer(res.usuario.idUsuario);
+								if (unidadUsuario) {
+									await AsyncStorage.setItem('usuario', JSON.stringify({ ...res.usuario, unidad: unidadUsuario }));
+									setUser({ ...res.usuario, unidad: unidadUsuario });
+								} else {
+									await AsyncStorage.removeItem('token');
+									Alert.alert('Error', 'No tienes una unidad asignada, contacte al administrador');
+								}
 							} else if (res.operationResult == Constantes.INVALIDUSER) {
 								e.setFieldError('password', 'Usuario o contraseña incorrecta');
 							}
+							setLoading(false);
 						}}
 					>
 						{(props) => (

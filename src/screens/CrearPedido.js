@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { ScrollView, View, KeyboardAvoidingView, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { ScrollView, View, KeyboardAvoidingView, Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import { Layout, Text, TextInput, Button, themeColor, TopNav } from 'react-native-rapi-ui';
 import { AuthContext } from '../provider/AuthProvider';
 import { Formik } from 'formik';
@@ -18,6 +18,7 @@ export default function ({ route, navigation }) {
 	const [tipoPedido, setTipoPedido] = useState({});
 	const [estado, setEstado] = useState(estados[0]);
 	const [tarifa, setTarifa] = useState(0);
+	const [errors, setErrors] = useState({});
 
 	const params = route.params;
 
@@ -30,13 +31,14 @@ export default function ({ route, navigation }) {
 		if (params?.tipoPedidoSeleccionado) setTipoPedido(params.tipoPedidoSeleccionado);
 		if (params?.tipoPedidoSeleccionado?.tarifa) setTarifa(params.tipoPedidoSeleccionado?.tarifa.toString());
 		if (params?.direccionSeleccionada) setDireccion(params.direccionSeleccionada);
+
+		setErrors({
+			cliente: false,
+			tipoPedido: false,
+		});
 	}, [params]);
 
-	const formSchema = yup.object({
-		tamaño: 0,
-		peso: 0,
-		cubicaje: 0,
-	});
+	const formSchema = yup.object({});
 
 	return (
 		<KeyboardAvoidingView behavior="height" enabled style={{ flex: 1 }}>
@@ -52,19 +54,20 @@ export default function ({ route, navigation }) {
 					}}
 				>
 					<Formik
-						initialValues={{
-							tamaño: 0,
-							peso: 0,
-							cubicaje: 0,
-						}}
+						initialValues={{}}
 						validationSchema={formSchema}
 						onSubmit={async (values, e) => {
 							try {
+								setErrors({
+									cliente: !cliente.idCliente ? true : false,
+									tipoPedido: !tipoPedido.idTipoPedido ? true : false,
+								});
+
 								if (direccion && tipoPedido && cliente && tarifa) {
 									const pedidoIngresado = {
-										...values,
-										idChofer: cliente.idCliente,
+										idChofer: user.idUsuario,
 										idCliente: cliente.idCliente,
+										cliente: cliente,
 										tarifa: tarifa,
 										idTipoPedido: tipoPedido.idTipoPedido,
 										longitude: direccion.longitude,
@@ -75,34 +78,37 @@ export default function ({ route, navigation }) {
 									};
 
 									const pedidoIngresadoParsedServidor = {
-										...values,
-										idChofer: cliente.idCliente,
+										idChofer: user.idUsuario,
 										idCliente: cliente.idCliente,
 										tarifa: parseInt(tarifa),
 										idTipoPedido: tipoPedido.idTipoPedido,
 										longitude: direccion.longitude,
 										latitude: direccion.latitude,
 										nombreDireccion: direccion.nombreDireccion,
-										idTransporte: 2,
+										idTransporte: user.unidad.idUnidadTransporte,
+										estado: Constantes.ESTADO_PEDIDO_PENDIENTE,
 									};
 
 									const res = await pedidos.registrarPedido(pedidoIngresadoParsedServidor);
-									console.log(res);
+
 									if (res.operationResult == Constantes.SUCCESS) {
-										navigation.navigate('Inicio', {
-											pedidoIngresado,
-										});
+										navigation.navigate('Inicio', { pedidoIngresado: true });
+										// , {
+										// 	pedidoIngresado,
+										// }
 									} else if (res.operationResult == Constantes.ERROR) {
-										//FIXME MENSAJE ERROR
+										Alert.alert('Error', 'Ha ocurrido un error al crear el pedido');
 									}
 
 									// const res = pedido
 									// 	? await servicioPedidos.modificarPedido(pedidoIngresado)
 									// 	: await servicioPedidos.registrarPedido(pedidoIngresado);
 								} else {
-									// toast.error('Ingrese los datos');
+									// Alert.alert('Error', 'Ingrese los datos');
 								}
-							} catch (error) {}
+							} catch (error) {
+								console.log(error);
+							}
 						}}
 					>
 						{(props) => (
@@ -132,7 +138,7 @@ export default function ({ route, navigation }) {
 										</Chip>
 									</TouchableOpacity>
 
-									<Text>Usuario</Text>
+									<Text style={{ marginTop: 15 }}>Cliente</Text>
 									<TouchableOpacity
 										onPress={() => {
 											navigation.navigate('Clientes');
@@ -149,7 +155,7 @@ export default function ({ route, navigation }) {
 									</TouchableOpacity>
 
 									<Text size="sm" style={styles.error}>
-										{props.touched.usuario && props.errors.usuario}
+										{errors.cliente && 'Ingrese un cliente'}
 									</Text>
 
 									<Text>Tipo</Text>
@@ -166,9 +172,70 @@ export default function ({ route, navigation }) {
 												{tipoPedido?.nombre ? tipoPedido.nombre : 'Haz click para selecionar un tipo'}
 											</TextPaper>
 										</Chip>
+										{/* <View
+												style={{
+													flexDirection: 'row',
+													backgroundColor: '#f6f6f6',
+													borderRadius: 10,
+													padding: 5,
+													alignItems: 'center',
+													width: '100%',
+												}}
+											> */}
 									</TouchableOpacity>
+									{tipoPedido.pesoDesde && (
+										<>
+											<Text style={{ marginTop: 2 }}>
+												<Text variant="titleSmall">{'Tarifa: '}</Text>
+												<Text
+													style={{
+														backgroundColor: '#f6f6f6',
+														borderRadius: 15,
+														padding: 5,
+														alignItems: 'center',
+														width: '50%',
+													}}
+													variant="titleMedium"
+												>
+													{'$ ' + tipoPedido.tarifa}
+												</Text>
+											</Text>
+											<Text>
+												<Text variant="titleMedium">{'Peso desde: '}</Text>
+												<Text
+													style={{
+														backgroundColor: '#f6f6f6',
+														borderRadius: 10,
+														padding: 5,
+														alignItems: 'center',
+														width: '50%',
+													}}
+													variant="titleMedium"
+												>
+													{tipoPedido.pesoDesde + ' km'}
+												</Text>
 
-									<Text>Tarifa</Text>
+												<Text variant="titleMedium">{'  Peso hasta: '}</Text>
+												<Text
+													style={{
+														backgroundColor: '#f6f6f6',
+														borderRadius: 10,
+														padding: 5,
+														alignItems: 'center',
+														width: '50%',
+													}}
+													variant="titleMedium"
+												>
+													{tipoPedido.pesoHasta + ' km'}
+												</Text>
+											</Text>
+										</>
+									)}
+									<Text size="sm" style={styles.error}>
+										{errors.tipoPedido && 'Ingrese un tipo de pedido'}
+									</Text>
+
+									<Text style={{ marginTop: 15 }}>Tarifa</Text>
 									<TextInput
 										containerStyle={{ marginTop: 15 }}
 										placeholder="Introduce tu tarifa"
@@ -179,7 +246,7 @@ export default function ({ route, navigation }) {
 										onChangeText={(t) => setTarifa(t)}
 										value={tarifa}
 									/>
-									<Text>Tamaño</Text>
+									{/* <Text>Tamaño</Text>
 									<TextInput
 										containerStyle={{ marginTop: 15 }}
 										placeholder="Introduce tu tamaño"
@@ -207,22 +274,7 @@ export default function ({ route, navigation }) {
 									/>
 									<Text size="sm" style={styles.error}>
 										{props.touched.peso && props.errors.peso}
-									</Text>
-
-									<Text>Cubicaje</Text>
-									<TextInput
-										containerStyle={{ marginTop: 15 }}
-										placeholder="Introduce tu cubicaje"
-										autoCapitalize="none"
-										autoCompleteType="off"
-										autoCorrect={false}
-										onChangeText={props.handleChange('cubicaje')}
-										value={props.values.cubicaje}
-										onBlur={props.handleBlur('cubicaje')}
-									/>
-									<Text size="sm" style={styles.error}>
-										{props.touched.cubicaje && props.errors.cubicaje}
-									</Text>
+									</Text> */}
 									<View
 										style={{
 											flexDirection: 'row',

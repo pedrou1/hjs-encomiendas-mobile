@@ -94,7 +94,7 @@ export default function ({ navigation }) {
 								rankby: 'distance',
 							}}
 							onChangeText={(text) => {
-								console.log(text);
+								// console.log(text);
 							}}
 							onPress={(data, details = null) => {
 								autocompleteRef.current?.setAddressText(data.description.substring(0, 65));

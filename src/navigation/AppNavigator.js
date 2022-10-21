@@ -5,7 +5,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import TabBarIcon from '../components/utils/TabBarIcon';
 import TabBarText from '../components/utils/TabBarText';
 import Inicio from '../screens/Inicio';
-import PantallaTest from '../screens/PantallaTest';
 import Detalles from '../screens/Detalles';
 import Perfil from '../screens/Perfil';
 import Loading from '../screens/utils/Loading';
@@ -15,6 +14,8 @@ import CrearPedido from '../screens/CrearPedido';
 import Clientes from '../screens/SeleccionarClientes';
 import TiposPedidos from '../screens/SeleccionarTipoPedido';
 import SeleccionarDireccion from '../screens/SeleccionarDireccion';
+import VerPedido from '../screens/VerPedido';
+import AnotarEntregados from '../screens/AnotarEntregados';
 
 const AuthStack = createNativeStackNavigator();
 const Auth = () => {
@@ -38,8 +39,9 @@ const Main = () => {
 			}}
 		>
 			<MainStack.Screen name="Inicio" component={Inicio} />
-			<MainStack.Screen name="PantallaTest" component={PantallaTest} />
 			<MainStack.Screen name="CrearPedido" component={CrearPedido} />
+			<MainStack.Screen name="AnotarEntregados" component={AnotarEntregados} />
+			<MainStack.Screen name="VerPedido" component={VerPedido} />
 			<MainStack.Screen name="Clientes" component={Clientes} />
 			<MainStack.Screen name="TiposPedidos" component={TiposPedidos} />
 			<MainStack.Screen name="SeleccionarDireccion" component={SeleccionarDireccion} />
@@ -72,7 +74,7 @@ const MainTabs = () => {
 				name="Pedidos"
 				component={Detalles}
 				options={{
-					tabBarLabel: ({ focused }) => <TabBarText focused={focused} title="Detalles" />,
+					tabBarLabel: ({ focused }) => <TabBarText focused={focused} title="Pedidos" />,
 					tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} icon={'ios-information-circle'} />,
 				}}
 			/>

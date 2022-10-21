@@ -1,41 +1,57 @@
 import React, { useContext, useState, useRef, useMemo, useEffect } from 'react';
-import { View, Linking, TouchableOpacity, StyleSheet, Dimensions, Image } from 'react-native';
+import { View, Linking, TouchableOpacity, StyleSheet, Dimensions, Alert } from 'react-native';
 import { Layout, Text } from 'react-native-rapi-ui';
 import { AuthContext } from '../provider/AuthProvider';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import MapView, { Marker, Callout, Polyline } from 'react-native-maps';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import MapViewDirections from 'react-native-maps-directions';
-import { FAB, Button } from 'react-native-paper';
+import { FAB, Button, Chip } from 'react-native-paper';
 import * as Location from 'expo-location';
 import * as Constantes from '../utils/Constantes';
 import * as pedidosServicio from '../services/pedidos';
+import Spinner from 'react-native-loading-spinner-overlay';
+import { Ionicons, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
+import { ProgressSteps, ProgressStep } from 'react-native-progress-steps';
 
 const GOOGLE_API_KEY = process.env.PLACES_API_BASE.toString();
 
 export default function ({ route, navigation }) {
-	const { setUser } = useContext(AuthContext);
+	const { user, setUser } = useContext(AuthContext);
 	const bottomSheetRef = useRef(null);
 	const mapViewRef = useRef(null);
-	const autocompleteRef = useRef(null);
-	const [driverLocation, setDriverLocation] = useState({ latitude: -34.90658452897425, longitude: -56.18052889728755, nombreDireccion: 'Tú' });
+	const [ubicacionChofer, setUbicacionChofer] = useState({ latitude: -34.90658452897425, longitude: -56.18052889728755, nombreDireccion: 'Tú' });
 	const [optimizando, setOptimizando] = useState(false);
-	const [modoRecorrido, setModoRecorrido] = useState(null);
-
+	const [modoRecorrido, setModoRecorrido] = useState(false);
 	const snapPoints = useMemo(() => ['15%', '80%'], []);
+	const [loading, setLoading] = useState(false);
+	const [coordinates, setCoordinates] = useState([]);
+	const [coordinatesAux, setCoordinatesAux] = useState([]);
+	const [ordenPedidos, setOrdenPedidos] = useState([]);
+	const [duracionPedidoRecorriendo, setDuracionPedidoRecorriendo] = useState(null);
+	const [contadorCompletado, setContadorCompletado] = useState(1);
 
 	const params = route.params;
 
+	const initialPosition = {
+		latitude: ubicacionChofer.latitude,
+		longitude: ubicacionChofer.longitude,
+		latitudeDelta: 0.09,
+		longitudeDelta: 0.035,
+	};
+
 	useEffect(() => {
+		if (params?.pedidoIngresado) getPedidos();
 		if (
-			params?.pedidoIngresado &&
-			!coordinates.find((c) => c.latitude === params.pedidoIngresado.latitude && c.longitude === params.pedidoIngresado.longitude)
+			params?.pedidoCancelado &&
+			!coordinates.find((c) => c.latitude === params.pedidoCancelado.latitude && c.longitude === params.pedidoCancelado.longitude)
 		) {
-			setCoordinates([...coordinates, params.pedidoIngresado]);
-		}
+			setCoordinates([...coordinates, params.pedidoCancelado]);
+		} // borrar esto??
 	}, [params]);
 
 	useEffect(() => {
+		setLoading(true);
+		// se carga la ubicacion del chofer actual
 		(async () => {
 			let { status } = await Location.requestForegroundPermissionsAsync();
 			if (!status === 'granted') {
@@ -44,50 +60,59 @@ export default function ({ route, navigation }) {
 			}
 
 			let location = await Location.getCurrentPositionAsync();
-			setDriverLocation({
+			const ubicacionParsed = {
 				latitude: location.coords.latitude,
 				longitude: location.coords.longitude,
 				nombreDireccion: 'Tú',
-			});
+			};
+			setUbicacionChofer(ubicacionParsed);
+			getPedidos(ubicacionParsed);
 		})();
-
-		getPedidos();
 	}, []);
 
-	const getPedidos = async () => {
-		const params = {};
-		params.idUsuarioChofer = 8; //FIXME CAMBIAR POR USUARIO CHOFER LOGEADO
-		const { pedidos, operationResult } = await pedidosServicio.obtenerPedidosChoferPorDia(params);
-		if (operationResult == Constantes.SUCCESS) {
-			//setear array
-			console.log(pedidos);
+	const optimizarPedidosYGuardar = async (pedidosParsed, ubicacionChofer) => {
+		if (pedidosParsed.length >= 2) {
+			const origin = ubicacionChofer;
+			const waypoints = pedidosParsed;
+			const destination = ubicacionChofer;
+			const orden = await pedidosServicio.optimizarRuta(origin, waypoints, destination);
+			setOrdenPedidos(orden);
+
+			let arra = [];
+			if (orden?.length >= 2) {
+				orden.map((w) => {
+					arra.push(pedidosParsed[w]);
+				});
+				setCoordinates(arra);
+			} else {
+				setCoordinates(pedidosParsed);
+			}
+		} else {
+			setCoordinates(pedidosParsed);
 		}
 	};
 
-	const [initialPosition, setInitialPosition] = useState({
-		latitude: driverLocation.latitude,
-		longitude: driverLocation.longitude,
-		latitudeDelta: 0.09,
-		longitudeDelta: 0.035,
-	});
-
-	const [coordinates, setCoordinates] = useState([
-		{
-			nombreDireccion: 'Plaza indep',
-			nombreCliente: 'Juan Perez',
-			latitude: -34.90703478690642,
-			longitude: -56.200666546312526,
-			key: 'Direccion1',
-			estado: 1,
-		},
-		{ nombreDireccion: 'tres cr', nombreCliente: 'Juan Perez', latitude: -34.8938251, longitude: -56.1663526, key: 'Direcc11ion1', estado: 1 },
-		{ nombreDireccion: 'Antel', nombreCliente: 'Juan Perez', latitude: -34.906894010482546, longitude: -56.19176161236216, key: 'Direccion2' },
-		// { nombreDireccion: 'loi', nombreCliente: 'Juan Perez', latitude: -34.9084324, longitude: -56.1991574, key: '2222' },
-	]);
-
-	const [coordinatesAux, setCoordinatesAux] = useState([]);
+	const getPedidos = async (ubicacionChofer) => {
+		//obtiene los pedidos de hoy del chofer
+		const params = {};
+		params.idUsuarioChofer = user.idUsuario;
+		params.fecha = new Date();
+		const { pedidos, operationResult } = await pedidosServicio.obtenerPedidosPendientesChoferPorDia(params);
+		if (operationResult == Constantes.SUCCESS) {
+			const pedidosParsed = pedidos.map((p) => {
+				return {
+					...p,
+					key: p.nombreDireccion,
+					nombreCliente: p.cliente.nombre + ' ' + p.cliente.apellido,
+				};
+			});
+			await optimizarPedidosYGuardar(pedidosParsed, ubicacionChofer);
+			setLoading(false);
+		}
+	};
 
 	const onPedidoPressed = (pedido) => {
+		// se anima a la posicion del pedido
 		bottomSheetRef.current?.collapse();
 
 		mapViewRef.current?.animateToRegion(
@@ -101,12 +126,10 @@ export default function ({ route, navigation }) {
 		);
 	};
 
-	const reloadRoute = () => {
-		const coorCopy = coordinates;
-		setCoordinates([]);
-
+	const reloadRoute = async () => {
+		setOptimizando(true);
+		await optimizarPedidosYGuardar(coordinates, ubicacionChofer);
 		setTimeout(() => {
-			setCoordinates(coorCopy);
 			setOptimizando(false);
 		}, 500);
 	};
@@ -115,39 +138,77 @@ export default function ({ route, navigation }) {
 		setModoRecorrido(!modoRecorrido);
 		if (modoRecorridoIn) setCoordinates(coordinatesAux);
 		else {
-			setCoordinatesAux(coordinates.shift());
+			setCoordinatesAux([...coordinates]); //.shift()
 			//set el primero que no esta entregado y borrarlo de coordinates aux
-			setCoordinates([driverLocation, coordinates[0]]);
+			setCoordinates([ubicacionChofer, coordinates[0]]);
+			setTiempoEntrePuntos(ubicacionChofer, coordinates[0]);
 		}
 	};
 
 	const abrirGPS = () => {
+		bottomSheetRef.current?.snapToIndex(1);
 		//abrir el primero que no esta entregado
 		const latLng = `${coordinates[1].latitude},${coordinates[1].longitude}`;
 		Linking.openURL(`google.navigation:q=${latLng}`);
 	};
 
-	const actualizarEstadoPedido = (pedido, estado) => {
-		//switch estado update coordinates pedido
+	const actualizarEstadoPedido = async (pedido, estado) => {
 		switch (estado) {
-			case 1:
+			//actualizar estado en la bd
+			case Constantes.ESTADO_PEDIDO_PENDIENTE:
 				//en proceso
 				break;
-			case 2:
-				//entregado
-				// eliminar de la llista?? y dejarlo en otra auxiliar para mostrar en el historial??
-				//actualizar estado en la bd
-				console.log('entregado');
+			case Constantes.ESTADO_PEDIDO_RETIRADO:
+				setLoading(true);
+				//elimina el pedido que se marco como retirado de la lista
 				const newCoordinates = coordinatesAux.filter((c) => c.latitude != pedido.latitude && c.longitude != pedido.longitude);
-				setCoordinatesAux(newCoordinates);
-				setCoordinates([driverLocation, coordinatesAux[0]]);
+				const res = await pedidosServicio.modificarEstadoPedido(pedido.idPedido, Constantes.ESTADO_PEDIDO_RETIRADO);
+
+				if (newCoordinates.length > 0) {
+					setCoordinatesAux(newCoordinates);
+					setCoordinates([ubicacionChofer, coordinatesAux[1]]);
+				} else {
+					setCoordinates([]);
+					setModoRecorrido(false);
+					Alert.alert('Completado', 'No tienes mas pedidos por hoy!');
+				}
+				setTimeout(() => {
+					setLoading(false);
+					bottomSheetRef.current?.snapToIndex(0);
+				}, 200);
+				setContadorCompletado(contadorCompletado + 1);
 				break;
-			case 3:
+			case Constantes.ESTADO_PEDIDO_CANCELADO:
+				pedido.estado == Constantes.ESTADO_PEDIDO_CANCELADO;
+				const resp = await pedidosServicio.modificarEstadoPedido(pedido.idPedido, Constantes.ESTADO_PEDIDO_CANCELADO);
+				getPedidos();
 				//cancelado
 				break;
 			default:
 				break;
 		}
+	};
+
+	var distance = require('hpsweb-google-distance');
+	distance.apiKey = GOOGLE_API_KEY;
+
+	const setTiempoEntrePuntos = async (origin, destination) => {
+		// comparar coordenadas actuales con cada una de las coordenadas de la lista
+		origin = `${origin.latitude},${origin.longitude}`;
+		destination = `${destination.latitude},${destination.longitude}`;
+		distance
+			.get({
+				origin,
+				destination,
+				language: 'es',
+			})
+			.then(function (data) {
+				setDuracionPedidoRecorriendo({ tiempo: data.duration, distancia: data.distance });
+				//let sorted = els.sort((a, b) => a.distance.value - b.distance.value);
+			})
+			.catch(function (err) {
+				console.log(err);
+			});
 	};
 
 	return (
@@ -163,9 +224,8 @@ export default function ({ route, navigation }) {
 								style={styles.fab}
 								color="white"
 								customSize={45}
-								onPress={() => {
-									setOptimizando(true);
-									reloadRoute();
+								onPress={async () => {
+									await reloadRoute();
 								}}
 							/>
 						) : (
@@ -197,40 +257,25 @@ export default function ({ route, navigation }) {
 				)}
 
 				<View style={{ mt: 15 }}>
+					<Spinner
+						visible={optimizando || loading}
+						textContent={'Cargando...'}
+						textStyle={{
+							color: '#FFF',
+							marginBottom: 30,
+						}}
+						overlayColor="rgba(0, 0, 0, 0.5)"
+						size="large"
+					/>
 					<MapView initialRegion={initialPosition} ref={mapViewRef} style={styles.map} provider="google" showsUserLocation followsUserLocation>
 						<MapViewDirections
 							strokeColor="#ed4c4c"
 							strokeWidth={6}
-							// resetOnChange={true}
-							optimizeWaypoints={true}
+							optimizeWaypoints={false}
 							origin={coordinates[0]}
 							waypoints={coordinates.length > 2 ? coordinates.slice(1) : undefined}
 							destination={coordinates[coordinates.length > 2 ? 0 : 1]}
 							apikey={GOOGLE_API_KEY}
-							// onStart={(e) => {
-							// 	console.log('onStart: ', e);
-							// 	setCoordinates([e.origin]);
-							// }}
-							onReady={(e) => {
-								// console.log('onReady: ', e);
-								let arra = [];
-								if (coordinates.length > 2) {
-									e.waypointOrder.map((wp) => {
-										arra.push(coordinates[0]);
-										wp.map((w) => {
-											// console.log(w);
-											arra.push(coordinates[w + 1]);
-										});
-										// coordinates.map((c, i) => {
-										// 	if(i== 0 ){arra.push(coordinates[0])}
-										// 	else{
-										// 		arra.push(coordinates[c])
-										// 	}
-										// })
-									});
-									setCoordinates(arra);
-								}
-							}}
 						/>
 						{coordinates.map((marker, index) => (
 							<View key={marker.nombreDireccion}>
@@ -248,7 +293,7 @@ export default function ({ route, navigation }) {
 								) : (
 									<Marker
 										key={marker.nombreDireccion}
-										onPress={() => onMarkerPressed(marker, index)}
+										onPress={() => null}
 										coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
 										image={require('../assets/google-maps.png')}
 									>
@@ -260,14 +305,6 @@ export default function ({ route, navigation }) {
 							</View>
 						))}
 					</MapView>
-					{/* <Callout>
-					{index == 0 && (
-									<Marker key={marker.nombreDireccion + index} coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}>
-										<Text>{'marker.nombreDireccion'}</Text>
-									</Marker>
-								)}
-									<Text>{marker.nombreDireccion}</Text>
-								</Callout> */}
 				</View>
 				<BottomSheet ref={bottomSheetRef} snapPoints={snapPoints}>
 					<View style={{ alignItems: 'center', marginBottom: 30 }}>
@@ -288,14 +325,26 @@ export default function ({ route, navigation }) {
 						data={coordinates}
 						renderItem={({ item, index }) => (
 							<View key={item.nombreDireccion}>
-								<View style={{ flexDirection: 'row', marginLeft: 10, paddingVertical: 5 }}>
+								<View
+									style={{
+										flexDirection: 'row',
+										marginLeft: 5,
+										marginRight: 5,
+										paddingVertical: 5,
+										backgroundColor: '#f4f4f4',
+										marginTop: 5,
+										borderRadius: 15,
+										minHeight: 50,
+									}}
+								>
 									<TouchableOpacity
-										style={{ backgroundColor: 'yellow', width: '70%', flexDirection: 'row' }}
+										style={{ width: '70%', flexDirection: 'row', borderRightWidth: 1, borderRightColor: '#d3d3d3' }}
 										onPress={() => {
-											onPedidoPressed(item);
+											// onPedidoPressed(item);
+											navigation.navigate('VerPedido', { pedido: item });
 										}}
 									>
-										<View style={{ width: '8%', justifyContent: 'center' }}>
+										<View style={{ width: '8%', justifyContent: 'center', marginRight: 5 }}>
 											<View
 												style={{
 													width: 20,
@@ -303,6 +352,7 @@ export default function ({ route, navigation }) {
 													justifyContent: 'center',
 													borderRadius: 20 / 2,
 													backgroundColor: 'grey',
+													marginLeft: 2,
 												}}
 											>
 												<Text
@@ -317,37 +367,137 @@ export default function ({ route, navigation }) {
 												</Text>
 											</View>
 										</View>
-										{/* <View
-											style={{ width: '5%', justifyContent: 'center', backgroundColor: 'red', height: 30, width: 30, borderRadius: 15 }}
+
+										<View
+											style={{
+												width: '95%',
+												textAlign: 'center',
+												display: 'flex',
+												flexDirection: 'column',
+												justifyContent: 'center',
+											}}
 										>
-											<Text>{index + 1}</Text>
-										</View> */}
-										<View style={{ width: '95%' }}>
-											<Text style={{ fontSize: 18, fontWeight: '500' }}>{`${item.nombreDireccion.substring(0, 75)}${
-												item.nombreDireccion.length > 75 ? '...' : ''
+											<Text style={{ fontSize: 18, fontWeight: '500' }}>{`${item.nombreDireccion.substring(0, 55)}${
+												item.nombreDireccion.length > 55 ? '...' : ''
 											}`}</Text>
-											<Text style={{ color: 'grey' }}>Juan Perez</Text>
+											{item.cliente && (
+												<Text style={{ color: 'grey' }}>{`${item.cliente.nombre} ${
+													item.cliente.apellido ? item.cliente.apellido : ''
+												}`}</Text>
+											)}
 										</View>
 									</TouchableOpacity>
-									<TouchableOpacity
-										style={{ width: '15%', backgroundColor: 'red', color: 'white' }}
-										onPress={() => {
-											onPedidoPressed(item);
-										}}
-									>
-										{/* despues de apretar esto tiene que aparecer un boton de iniciar gps */}
-										<Text style={{ alignSelf: 'flex-end' }}>Cancelar</Text>
-									</TouchableOpacity>
-									<TouchableOpacity
-										style={{ width: '15%', backgroundColor: 'green' }}
-										onPress={() => {
-											actualizarEstadoPedido(item, 2);
-										}}
-									>
-										{/* despues de apretar esto tiene que aparecer un boton de iniciar gps */}
-										<Text style={{ alignSelf: 'flex-end', color: 'white' }}>Completado</Text>
-									</TouchableOpacity>
+									{modoRecorrido && index != 0 ? (
+										<>
+											<TouchableOpacity
+												style={{
+													width: '15%',
+													color: 'white',
+													display: 'flex',
+													flexDirection: 'row',
+													justifyContent: 'center',
+													alignItems: 'center',
+												}}
+												onPress={() => {
+													actualizarEstadoPedido(item, Constantes.ESTADO_PEDIDO_CANCELADO);
+												}}
+											>
+												{/* <Text style={{ alignSelf: 'flex-end' }}>Cancelar</Text> */}
+												<AntDesign name="closecircleo" size={45} color="#940000" />
+											</TouchableOpacity>
+											<TouchableOpacity
+												style={{
+													width: '15%',
+													color: 'white',
+													display: 'flex',
+													flexDirection: 'row',
+													justifyContent: 'center',
+													alignItems: 'center',
+												}}
+												onPress={() => {
+													actualizarEstadoPedido(item, Constantes.ESTADO_PEDIDO_RETIRADO);
+												}}
+											>
+												{/* <Chip icon="check" onPress={() => console.log('Pressed')}></Chip> */}
+												<AntDesign name="checkcircleo" size={45} color={'#005e05'} />
+												{/* <Text style={{ alignSelf: 'flex-end', color: 'white' }}>Completado</Text> */}
+											</TouchableOpacity>
+										</>
+									) : (
+										<>
+											{item.nombreDireccion != 'Tú' && (
+												<>
+													{item.cliente?.telefono && (
+														<TouchableOpacity
+															style={{
+																width: '15%',
+																color: 'white',
+																display: 'flex',
+																flexDirection: 'row',
+																justifyContent: 'center',
+																alignItems: 'center',
+															}}
+															onPress={() => {
+																Linking.openURL(`tel:${item.cliente?.telefono}`);
+															}}
+														>
+															<MaterialCommunityIcons name="cellphone" size={40} color="black" />
+														</TouchableOpacity>
+													)}
+
+													<TouchableOpacity
+														style={{
+															width: item.cliente?.telefono ? '15%' : '30%',
+															color: 'white',
+															display: 'flex',
+															flexDirection: 'row',
+															justifyContent: 'center',
+															alignItems: 'center',
+														}}
+														onPress={() => {
+															onPedidoPressed(item);
+														}}
+													>
+														<MaterialCommunityIcons name="map-marker-radius-outline" size={45} color="black" />
+														{/* <Text style={{ alignSelf: 'flex-end', color: 'white' }}>DETALLES</Text> */}
+													</TouchableOpacity>
+												</>
+											)}
+										</>
+									)}
 								</View>
+
+								{modoRecorrido && index != 0 && duracionPedidoRecorriendo ? (
+									<>
+										{coordinates.length > 1 && (
+											<>
+												<ProgressSteps
+													activeStepIconBorderColor={'black'}
+													labelColor={'black'}
+													activeLabelColor={'black'}
+													disabledStepIconColor={'black'}
+													progressBarColor={'black'}
+													completedProgressBarColor={'black'}
+													completedStepIconColor={'grey'}
+													completedCheckColor={'grey'}
+													completedLabelColor={'grey'}
+													labelFontSize={13}
+													marginBottom={40}
+												>
+													{coordinates.map((item, index) => {
+														return <ProgressStep label={`${index == 0 ? 'Tu' : 'Pedido'}`} removeBtnRow={true}></ProgressStep>;
+													})}
+												</ProgressSteps>
+											</>
+										)}
+										<View style={{ marginTop: 5 }}>
+											<Text style={{ color: 'grey', alignSelf: 'center' }}>{duracionPedidoRecorriendo.tiempo.toString()}</Text>
+											<Text style={{ color: 'grey', alignSelf: 'center' }}>{duracionPedidoRecorriendo.distancia.toString()}</Text>
+										</View>
+									</>
+								) : (
+									<></>
+								)}
 							</View>
 						)}
 					/>
@@ -355,11 +505,12 @@ export default function ({ route, navigation }) {
 						<Button
 							icon={modoRecorrido ? 'window-close' : 'arrow-right'}
 							mode="contained"
-							// style={{ width: 200, height: 50 }} // backgroundColor: '748DA6'
 							style={{ marginLeft: 15, marginRight: 15, marginBottom: 10, backgroundColor: '#293f6e' }}
 							labelStyle={{ fontSize: 25 }}
 							onPress={() => {
-								activarModoRecorrido(modoRecorrido);
+								setTimeout(() => {
+									activarModoRecorrido(modoRecorrido);
+								}, 400);
 							}}
 						>
 							<Text style={{ fontSize: 17, color: 'white' }}>{modoRecorrido ? 'Terminar recorrido' : 'Iniciar recorrido'}</Text>
@@ -371,7 +522,6 @@ export default function ({ route, navigation }) {
 						<Button
 							icon="plus"
 							mode="contained"
-							// style={{ width: 200, height: 50 }} // backgroundColor: '748DA6'
 							style={{ marginLeft: 15, marginRight: 15, marginBottom: 10, backgroundColor: '#485778' }}
 							labelStyle={{ fontSize: 25 }}
 							onPress={() => navigation.navigate('SeleccionarDireccion')}
@@ -424,44 +574,23 @@ const styles = StyleSheet.create({
 // 		});
 // });
 
-{
-	/* <GooglePlacesAutocomplete
-					ref={autocompleteRef}
-					placeholder="Busca una dirección"
-					fetchDetails={true}
-					GooglePlacesSearchQuery={{
-						rankby: 'distance',
-					}}
-					onPress={(data, details = null) => {
-						autocompleteRef.current?.setAddressText('');
-						console.log({ latitude: details.geometry.location.lat, longitude: details.geometry.location.lng });
-						if (!coordinates.some((c) => c.nombreDireccion == data.description)) {
-							setCoordinates([
-								...coordinates,
-								{ nombreDireccion: data.description, latitude: details.geometry.location.lat, longitude: details.geometry.location.lng },
-							]);
-						}
-					}}
-					query={{
-						//FIXME .env
-						key: GOOGLE_API_KEY,
-						language: 'es',
-						components: 'country:uy',
-						radius: 30000,
-						location: `${initialPosition.latitude}, ${initialPosition.longitude}`,
-					}}
-					styles={{
-						container: {
-							flex: 1,
-							position: 'absolute',
-							width: '100%',
-							zIndex: 1,
-						},
-						textInputContainer: {
-							color: 'white',
-							borderColor: 'grey',
-						},
-						listView: { backgroundColor: 'white' },
-					}}
-				/> */
-}
+// {
+// 	nombreDireccion: 'Plaza indep',
+// 	nombreCliente: 'Juan Perez',
+// 	latitude: -34.90703478690642,
+// 	longitude: -56.200666546312526,
+// 	key: 'Direccion1',
+// 	estado: 1,
+// },
+// { nombreDireccion: 'tres cr', nombreCliente: 'Juan Perez', latitude: -34.8938251, longitude: -56.1663526, key: 'Direcc11ion1', estado: 1 },
+// { nombreDireccion: 'Antel', nombreCliente: 'Juan Perez', latitude: -34.906894010482546, longitude: -56.19176161236216, key: 'Direccion2' },
+// { nombreDireccion: 'loi', nombreCliente: 'Juan Perez', latitude: -34.9084324, longitude: -56.1991574, key: '2222' },
+
+//esto estaba en useffect
+// al volver a esta pantalla al crear un pedido si no existe el mismo pedido se agrega a la lista
+// if (
+// 	params?.pedidoIngresado &&
+// 	!coordinates.find((c) => c.latitude === params.pedidoIngresado.latitude && c.longitude === params.pedidoIngresado.longitude)
+// ) {
+// 	setCoordinates([...coordinates, params.pedidoIngresado]);
+// }

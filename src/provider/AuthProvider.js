@@ -13,7 +13,6 @@ const AuthProvider = (props) => {
 	async function checkLogin() {
 		const token = await AsyncStorage.getItem('token');
 		const usuario = await AsyncStorage.getItem('usuario');
-		console.log(usuario);
 		if (usuario) setUser(JSON.parse(usuario));
 	}
 

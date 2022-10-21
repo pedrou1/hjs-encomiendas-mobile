@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, TouchableHighlight, View } from 'react-native';
 import { Layout, TopNav, themeColor } from 'react-native-rapi-ui';
-import { Card, Title, Paragraph } from 'react-native-paper';
+import { Card, Title, Paragraph, ActivityIndicator } from 'react-native-paper';
 import * as servicioUsuarios from '../services/usuarios';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 import * as Constantes from '../utils/Constantes';
@@ -10,17 +10,21 @@ const myIcon = <AntDesign name="right" size={32} color="green" />;
 
 const SeleccionarClientes = ({ navigation }) => {
 	const [clientes, setClientes] = useState([]);
+	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		getClientes();
 	}, []);
 
 	const getClientes = async () => {
+		setLoading(true);
 		const paginationData = { PageIndex: clientes.length, PageSize: 10 };
+		paginationData.Tipo = Constantes.ID_CLIENTE;
 		const res = await servicioUsuarios.obtenerUsuarios(paginationData);
 		if (res && res.operationResult == Constantes.SUCCESS) {
 			setClientes(res.usuarios);
 		}
+		setLoading(false);
 	};
 
 	const selectClientePedido = async (cliente) => {
@@ -32,46 +36,52 @@ const SeleccionarClientes = ({ navigation }) => {
 	return (
 		<Layout>
 			<TopNav
-				middleContent="Pantalla test"
+				middleContent="Clientes"
 				leftContent={<Ionicons name="chevron-back" size={20} color={themeColor.black} />}
 				leftAction={() => navigation.goBack()}
 			/>
 			<View>
-				<FlatList
-					onEndReached={async () => {
-						// obtiene de a 10 usuarios
-						const paginationData = { PageIndex: clientes.length, PageSize: 10 };
-						const res = await servicioUsuarios.obtenerUsuarios(paginationData); //FIXME TRAER SOLO CATEGORIA CLIENTES
-						if (res && res.operationResult == Constantes.SUCCESS && res.usuarios.length > 0) {
-							setClientes([...clientes, ...res.usuarios]);
-						}
-					}}
-					contentContainerStyle={{ paddingBottom: 62 }}
-					onEndReachedThreshold={0.5}
-					data={clientes}
-					keyExtractor={(item, i) => `${item.idUsuario}`}
-					renderItem={({ item }) => (
-						<TouchableHighlight
-							onPress={() => {
-								selectClientePedido(item);
-							}}
-						>
-							<View>
-								<Card>
-									<Card.Content>
-										<View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-											<View>
-												<Title>{`${item.nombre} ${item.apellido}`}</Title>
-												<Paragraph>{item.direccion ? item.direccion : item.telefono ? item.telefono : ''}</Paragraph>
+				{!loading ? (
+					<FlatList
+						onEndReached={async () => {
+							// obtiene de a 10 usuarios
+							const paginationData = { PageIndex: clientes.length, PageSize: 10 };
+							const res = await servicioUsuarios.obtenerUsuarios(paginationData); //FIXME TRAER SOLO CATEGORIA CLIENTES
+							if (res && res.operationResult == Constantes.SUCCESS && res.usuarios.length > 0) {
+								setClientes([...clientes, ...res.usuarios]);
+							}
+						}}
+						contentContainerStyle={{ paddingBottom: 62 }}
+						onEndReachedThreshold={0.5}
+						data={clientes}
+						keyExtractor={(item, i) => `${item.idUsuario}`}
+						renderItem={({ item }) => (
+							<TouchableHighlight
+								onPress={() => {
+									selectClientePedido(item);
+								}}
+							>
+								<View>
+									<Card>
+										<Card.Content>
+											<View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+												<View>
+													<Title>{`${item.nombre} ${item.apellido}`}</Title>
+													<Paragraph>{item.direccion ? item.direccion : item.telefono ? item.telefono : ''}</Paragraph>
+												</View>
+												<View style={{ alignSelf: 'center' }}>{myIcon}</View>
 											</View>
-											<View style={{ alignSelf: 'center' }}>{myIcon}</View>
-										</View>
-									</Card.Content>
-								</Card>
-							</View>
-						</TouchableHighlight>
-					)}
-				/>
+										</Card.Content>
+									</Card>
+								</View>
+							</TouchableHighlight>
+						)}
+					/>
+				) : (
+					<View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '90%' }}>
+						<ActivityIndicator size="large" color="#0000ff" />
+					</View>
+				)}
 			</View>
 		</Layout>
 	);
