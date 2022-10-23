@@ -92,7 +92,7 @@ export default function ({ route, navigation }) {
 								>
 									<Text variant="headlineMedium">{tipoPedido.nombre}</Text>
 								</View>
-								{tipoPedido.pesoDesde ? (
+								{tipoPedido.tarifa ? (
 									<>
 										<Text style={{ marginTop: 5 }}>
 											<Text size="sm">{'Tarifa: '}</Text>

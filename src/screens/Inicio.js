@@ -55,15 +55,18 @@ export default function ({ route, navigation }) {
 	}, [params]);
 
 	useEffect(() => {
-		setLoading(true);
 		// se carga la ubicacion del chofer actual
 		(async () => {
 			let { status } = await Location.requestForegroundPermissionsAsync();
-			if (!status === 'granted') {
-				console.log('Debe permitir el acceso a la ubicación');
+			if (status !== 'granted') {
+				Alert.alert('Error', 'Debe permitir el acceso a la ubicación, intenta de nuevo.', [{ text: 'Aceptar', onPress: () => setUser(null) }], {
+					cancelable: false,
+				});
+
 				return;
 			}
 
+			setLoading(true);
 			let location = await Location.getCurrentPositionAsync();
 			const ubicacionParsed = {
 				latitude: location.coords.latitude,
@@ -290,7 +293,7 @@ export default function ({ route, navigation }) {
 										key={marker.nombreDireccion}
 										coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
 										//pinColor="#3d34eb"
-										image={require('../assets/map-marker.png')}
+										image={require('../assets/route-marker.png')}
 									>
 										<Callout>
 											<Text>{marker.nombreDireccion}</Text>
@@ -301,7 +304,7 @@ export default function ({ route, navigation }) {
 										key={marker.nombreDireccion}
 										onPress={() => null}
 										coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
-										image={require('../assets/google-maps.png')}
+										image={require('../assets/current-route-marker.png')}
 									>
 										<Callout>
 											<Text>{marker.nombreDireccion}</Text>

@@ -121,7 +121,6 @@ export default function ({ navigation }) {
 								}, 1000);
 							}}
 							query={{
-								//FIXME .env
 								key: GOOGLE_API_KEY,
 								language: 'es',
 								components: 'country:uy',

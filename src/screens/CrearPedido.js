@@ -161,7 +161,7 @@ export default function ({ route, navigation }) {
 											</TextPaper>
 										</Chip>
 									</TouchableOpacity>
-									{tipoPedido.pesoDesde ? (
+									{tipoPedido.tarifa ? (
 										<>
 											<Text style={{ marginTop: 2 }}>
 												<Text variant="titleSmall">{'Tarifa: '}</Text>
