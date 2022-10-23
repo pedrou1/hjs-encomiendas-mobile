@@ -16,6 +16,7 @@ import TiposPedidos from '../screens/SeleccionarTipoPedido';
 import SeleccionarDireccion from '../screens/SeleccionarDireccion';
 import VerPedido from '../screens/VerPedido';
 import AnotarEntregados from '../screens/AnotarEntregados';
+import ReordenarPedido from '../screens/ReordenarPedido';
 
 const AuthStack = createNativeStackNavigator();
 const Auth = () => {
@@ -42,6 +43,7 @@ const Main = () => {
 			<MainStack.Screen name="CrearPedido" component={CrearPedido} />
 			<MainStack.Screen name="AnotarEntregados" component={AnotarEntregados} />
 			<MainStack.Screen name="VerPedido" component={VerPedido} />
+			<MainStack.Screen name="ReordenarPedido" component={ReordenarPedido} />
 			<MainStack.Screen name="Clientes" component={Clientes} />
 			<MainStack.Screen name="TiposPedidos" component={TiposPedidos} />
 			<MainStack.Screen name="SeleccionarDireccion" component={SeleccionarDireccion} />

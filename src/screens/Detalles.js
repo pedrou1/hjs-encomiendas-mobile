@@ -1,7 +1,7 @@
 import React, { useContext, useState, useRef, useMemo, useEffect } from 'react';
 import { FlatList, TouchableHighlight, View } from 'react-native';
-import { Layout, TopNav, themeColor, Button } from 'react-native-rapi-ui';
-import { Card, Title, Paragraph, Chip, Text, FAB, ActivityIndicator } from 'react-native-paper';
+import { Layout, TopNav, themeColor } from 'react-native-rapi-ui';
+import { Card, Title, Paragraph, Chip, Text, FAB, ActivityIndicator, Button } from 'react-native-paper';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 import * as Constantes from '../utils/Constantes';
 import { AuthContext } from '../provider/AuthProvider';
@@ -23,12 +23,7 @@ export default function (props) {
 		getPedidos();
 	}, []);
 
-	useEffect(() => {
-		console.log('useEffect');
-	}, [props]);
-
 	const getPedidos = async () => {
-		// const res = await pedidosService.otenerPedidosChoferPosteriores(user.idUsuario);
 		setLoading(true);
 		const res = await pedidosService.obtenerPedidosDiaEstadoChofer({ idUsuarioChofer: user.idUsuario });
 		if (res && res.operationResult == Constantes.SUCCESS) {
@@ -50,39 +45,54 @@ export default function (props) {
 		setIsRefreshing(false);
 	};
 
-	const selectPedido = async (pedido) => {
-		// seleccionar cliente y redireccionar
-		// navigation.navigate('CrearPedido', {
-		// 	clienteSeleccionado: { idCliente: cliente.idUsuario, nombre: cliente.nombre + ' ' + cliente.apellido },
-		// });
-	};
-
 	return (
 		<Layout>
-			<View style={{ flexDirection: 'row', justifyContent: 'space-between', marginLeft: 10, marginRight: 10, paddingVertical: 5 }}>
-				<View style={{ width: '50%' }}>
-					<Chip
-						mode="outlined"
-						style={{ marginTop: 10, padding: 5 }}
-						textStyle={{ marginLeft: 40 }}
-						onPress={() => {
-							// navigation.navigate('PantallaTest');
-						}}
-					>
-						Pedidos de hoy
-					</Chip>
-				</View>
-				<View style={{ width: '45%' }}>
-					<Chip
-						mode="outlined"
-						style={{ marginTop: 10, padding: 5 }}
-						textStyle={{ marginLeft: 35 }}
-						onPress={() => {
-							// navigation.navigate('PantallaTest');
-						}}
-					>
-						Ultimos pedidos
-					</Chip>
+			<View
+				style={{
+					flexDirection: 'row',
+					justifyContent: 'center',
+				}}
+			>
+				<View
+					style={{
+						paddingLeft: 100,
+						paddingRight: 100,
+						paddingVertical: 5,
+						width: '100%',
+						backgroundColor: 'white',
+						borderBottomWidth: 1,
+						borderBottomColor: '#d3d3d3',
+					}}
+				>
+					{!loading && pedidos?.length ? (
+						// <Chip
+						// 	icon="checkbox-marked-circle-outline"
+						// 	mode="outlined"
+						// 	onPress={() => {
+						// 		// navigation.navigate('PantallaTest');
+						// 	}}
+						// >
+						// 	Anotar entregados
+						// </Chip>
+						<Button
+							label="Anotar entregados"
+							icon="checkbox-marked-circle-outline"
+							contentStyle={{ flexDirection: 'row-reverse' }}
+							style={{ backgroundColor: '#F9F9F9' }}
+							color="black"
+							textColor="black"
+							mode="outlined"
+							customSize={45}
+							onPress={async () => {
+								// await reloadRoute();
+								navigation.navigate('AnotarEntregados');
+							}}
+						>
+							Anotar entregados
+						</Button>
+					) : (
+						<></>
+					)}
 				</View>
 			</View>
 			<View style={{ minHeight: 470 }}>
@@ -142,22 +152,6 @@ export default function (props) {
 					</View>
 				)}
 			</View>
-			{!loading && pedidos?.length ? (
-				<FAB
-					label="Anotar entregados"
-					icon="checkbox-marked-circle-outline"
-					contentStyle={{ flexDirection: 'row-reverse' }}
-					style={{ marginLeft: 100, marginRight: 100, marginBottom: 10, backgroundColor: '#485778' }}
-					color="white"
-					customSize={45}
-					onPress={async () => {
-						// await reloadRoute();
-						navigation.navigate('AnotarEntregados');
-					}}
-				/>
-			) : (
-				<></>
-			)}
 		</Layout>
 	);
 }

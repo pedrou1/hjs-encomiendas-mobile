@@ -1,12 +1,12 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { ScrollView, View, KeyboardAvoidingView, Linking, StyleSheet, TouchableOpacity } from 'react-native';
-import { Layout, Text, TextInput, Button, themeColor, TopNav } from 'react-native-rapi-ui';
+import { Layout, Text, TextInput, themeColor, TopNav } from 'react-native-rapi-ui';
 import { AuthContext } from '../provider/AuthProvider';
 import { Formik } from 'formik';
 import * as yup from 'yup';
 import { Ionicons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Chip, Text as TextPaper } from 'react-native-paper';
+import { Chip, Button } from 'react-native-paper';
 import * as pedidos from '../services/pedidos';
 import * as Constantes from '../utils/Constantes';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -19,11 +19,7 @@ export default function ({ route, navigation }) {
 
 	const params = route.params;
 
-	// //({ route, navigation })
-	// //const { usuario, unidad } = route.params;
-
 	useEffect(() => {
-		//setChofer(params.chofer);
 		if (params?.pedido) {
 			setPedido(params.pedido);
 			setTipoPedido(params?.pedido.tipoPedido);
@@ -54,8 +50,7 @@ export default function ({ route, navigation }) {
 									backgroundColor: themeColor.white,
 								}}
 							>
-								{}
-								<Text>Direccion</Text>
+								<Text>Dirección</Text>
 								<View
 									style={{
 										flexDirection: 'row',
@@ -82,19 +77,6 @@ export default function ({ route, navigation }) {
 								>
 									<Text variant="headlineMedium">{`${pedido.cliente.nombre} ${pedido.cliente.apellido ? pedido.cliente.apellido : ''}`}</Text>
 								</View>
-								{/* <Text>Tipo</Text>
-								<TouchableOpacity
-									onPress={() => {
-										navigation.navigate('TiposPedidos');
-									}}
-								>
-									<Chip
-										style={{ padding: 10, marginTop: 2, backgroundColor: '#c9daff' }}
-										icon={() => <Icon name={tipoPedido?.nombre ? 'check-bold' : 'information'} size={17} color="black" />}
-									>
-										<TextPaper variant="titleMedium">{tipoPedido.nombre}</TextPaper>
-									</Chip>
-								</TouchableOpacity> */}
 
 								<Text style={{ marginTop: 15 }}>Tipo</Text>
 								<View
@@ -110,7 +92,7 @@ export default function ({ route, navigation }) {
 								>
 									<Text variant="headlineMedium">{tipoPedido.nombre}</Text>
 								</View>
-								{tipoPedido.pesoDesde && (
+								{tipoPedido.pesoDesde ? (
 									<>
 										<Text style={{ marginTop: 5 }}>
 											<Text size="sm">{'Tarifa: '}</Text>
@@ -139,7 +121,7 @@ export default function ({ route, navigation }) {
 												}}
 												size="sm"
 											>
-												{tipoPedido.pesoDesde + ' km'}
+												{tipoPedido.pesoDesde + ' kg'}
 											</Text>
 
 											<Text size="sm">{'  Peso hasta: '}</Text>
@@ -153,15 +135,17 @@ export default function ({ route, navigation }) {
 												}}
 												size="sm"
 											>
-												{tipoPedido.pesoHasta + ' km'}
+												{tipoPedido.pesoHasta + ' kg'}
 											</Text>
 										</Text>
 									</>
+								) : (
+									<></>
 								)}
 
-								{pedido.descripcion && (
+								{pedido.descripcion ? (
 									<>
-										<Text style={{ marginTop: 15 }}>Descripcion</Text>
+										<Text style={{ marginTop: 15 }}>Descripción</Text>
 										<View
 											style={{
 												flexDirection: 'row',
@@ -176,9 +160,11 @@ export default function ({ route, navigation }) {
 											<Text variant="headlineMedium">{pedido.descripcion}</Text>
 										</View>
 									</>
+								) : (
+									<></>
 								)}
 
-								{pedido.apartamento && (
+								{pedido.apartamento ? (
 									<>
 										<Text style={{ marginTop: 15 }}>Apartamento</Text>
 										<View
@@ -195,11 +181,13 @@ export default function ({ route, navigation }) {
 											<Text variant="headlineMedium">{pedido.apartamento}</Text>
 										</View>
 									</>
+								) : (
+									<></>
 								)}
 
-								{pedido.nroPuerta && (
+								{pedido.nroPuerta ? (
 									<>
-										<Text style={{ marginTop: 15 }}>Nro. Puerta</Text>
+										<Text style={{ marginTop: 15 }}>Número de puerta</Text>
 										<View
 											style={{
 												flexDirection: 'row',
@@ -214,11 +202,13 @@ export default function ({ route, navigation }) {
 											<Text variant="headlineMedium">{pedido.nroPuerta}</Text>
 										</View>
 									</>
+								) : (
+									<></>
 								)}
 
-								{pedido.cliente?.telefono && (
+								{pedido.cliente?.telefono ? (
 									<>
-										<Text style={{ marginTop: 15 }}>Telefono</Text>
+										<Text style={{ marginTop: 15 }}>Teléfono</Text>
 										<View
 											style={{
 												flexDirection: 'row',
@@ -249,11 +239,13 @@ export default function ({ route, navigation }) {
 											</TouchableOpacity>
 										</View>
 									</>
+								) : (
+									<></>
 								)}
 
-								{pedido.cliente?.telefono2 && (
+								{pedido.cliente?.telefono2 ? (
 									<>
-										<Text style={{ marginTop: 15 }}>Telefono secundario</Text>
+										<Text style={{ marginTop: 15 }}>Teléfono secundario</Text>
 										<View
 											style={{
 												flexDirection: 'row',
@@ -284,12 +276,49 @@ export default function ({ route, navigation }) {
 											</TouchableOpacity>
 										</View>
 									</>
+								) : (
+									<></>
+								)}
+								{pedido.horaLimite && !isNaN(new Date(pedido.horaLimite)) ? (
+									<>
+										<Text style={{ marginTop: 15 }}>Hora Límite</Text>
+										<View
+											style={{
+												flexDirection: 'row',
+												backgroundColor: '#f6f6f6',
+												borderRadius: 10,
+												minHeight: 50,
+												padding: 10,
+												marginTop: 2,
+												alignItems: 'center',
+											}}
+										>
+											<Text variant="headlineMedium">{`${new Date(pedido.horaLimite).getHours()}:${new Date(
+												pedido.horaLimite
+											).getMinutes()}`}</Text>
+										</View>
+									</>
+								) : (
+									<></>
 								)}
 							</View>
 						)}
+						{params?.coordinates && params.coordinates.length > 2 && !params.modoRecorrido ? (
+							<View style={{ paddingLeft: 90, paddingRight: 90, backgroundColor: 'white' }}>
+								<Button
+									icon="order-bool-ascending"
+									mode="contained"
+									style={{ marginBottom: 10, backgroundColor: '#485778' }}
+									labelStyle={{ fontSize: 25 }}
+									onPress={() => navigation.navigate('ReordenarPedido', { coordinates: params.coordinates, pedido: pedido })}
+								>
+									<Text style={{ fontSize: 17, color: 'white' }}>Cambiar orden</Text>
+								</Button>
+							</View>
+						) : (
+							<></>
+						)}
 					</>
-					{/* )} */}
-					{/* </Formik> */}
 				</ScrollView>
 			</Layout>
 		</KeyboardAvoidingView>

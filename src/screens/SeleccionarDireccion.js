@@ -82,7 +82,7 @@ export default function ({ navigation }) {
 							<Text style={{ fontSize: 17, color: 'white' }}>Confirmar</Text>
 						</Button>
 					) : (
-						<Text style={tw`text-center py-3 text-xl`}>Ingresa una direccion</Text>
+						<Text style={tw`text-center py-3 text-xl`}>Ingresa una dirección</Text>
 					)}
 
 					<View style={tw`border-t border-gray-200 flex-shrink`}>
@@ -104,19 +104,21 @@ export default function ({ navigation }) {
 									latitude: details.geometry.location.lat,
 									longitude: details.geometry.location.lng,
 								});
-
-								mapViewRef.current?.animateToRegion(
-									{
-										longitude: details.geometry.location.lng,
-										latitude: details.geometry.location.lat,
-										latitudeDelta: 0.09,
-										longitudeDelta: 0.035,
-									},
-									1000
-								);
-								setTimeout(function () {
-									calloutRef.current.showCallout();
-								}, 1);
+								//settimeout
+								setTimeout(() => {
+									mapViewRef.current?.animateToRegion(
+										{
+											longitude: details.geometry.location.lng,
+											latitude: details.geometry.location.lat,
+											latitudeDelta: 0.09,
+											longitudeDelta: 0.035,
+										},
+										500
+									);
+									setTimeout(function () {
+										calloutRef.current.showCallout();
+									}, 1);
+								}, 1000);
 							}}
 							query={{
 								//FIXME .env

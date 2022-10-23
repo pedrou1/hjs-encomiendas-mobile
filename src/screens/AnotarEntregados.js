@@ -73,13 +73,52 @@ export default function ({ navigation }) {
 									<Card>
 										<Card.Content>
 											<View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-												<View style={{ borderRightWidth: 1, borderRightColor: '#d3d3d3', width: '60%' }}>
+												<View style={{ borderRightWidth: 1, borderRightColor: '#d3d3d3', width: '70%' }}>
 													<Text variant="titleLarge">{`${item.cliente.nombre} ${item.cliente.apellido}`}</Text>
-													<Title>{`${item.tipoPedido.nombre} $${item.tipoPedido.tarifa}`}</Title>
-													<Paragraph>
-														{item.nombreDireccion.substring(0, 65) + `${item.nombreDireccion.length > 65 ? '...' : ''}`}
-													</Paragraph>
-													{item.apartamento && <Paragraph>{item.apartamento}</Paragraph>}
+													<View
+														style={{
+															backgroundColor: '#f6f6f6',
+															borderRadius: 10,
+															padding: 0,
+															marginRight: 10,
+															paddingLeft: 7,
+															marginLeft: -7,
+															marginBottom: 3,
+														}}
+													>
+														<View>
+															<Title
+																style={{ marginBottom: 0, paddingBottom: 0 }}
+															>{`${item.tipoPedido.nombre} $${item.tipoPedido.tarifa}`}</Title>
+														</View>
+														<View>
+															<Paragraph style={{ marginTop: 0, paddingTop: 0 }}>{`de ${item.tipoPedido.pesoDesde + ' kg'} a ${
+																item.tipoPedido.pesoHasta + ' kg'
+															}`}</Paragraph>
+														</View>
+													</View>
+													<View
+														style={{
+															backgroundColor: '#f6f6f6',
+															borderRadius: 10,
+															padding: 0,
+															marginRight: 10,
+															paddingLeft: 7,
+															marginLeft: -7,
+														}}
+													>
+														{item.cliente?.direccion ? (
+															<Paragraph>
+																{item.cliente?.direccion.substring(0, 65) +
+																	`${item.cliente?.direccion.length > 65 ? '...' : ''}`}
+															</Paragraph>
+														) : (
+															<></>
+														)}
+														{item.cliente?.telefono ? <Paragraph>{`${item.cliente?.telefono}`}</Paragraph> : <></>}
+														{item.cliente?.telefono2 ? <Paragraph>{`${item.cliente?.telefono2}`}</Paragraph> : <></>}
+														{item.descripcion ? <Paragraph>{`${item.descripcion}`}</Paragraph> : <></>}
+													</View>
 												</View>
 												<TouchableOpacity
 													style={{
@@ -89,6 +128,7 @@ export default function ({ navigation }) {
 														flexDirection: 'row',
 														justifyContent: 'center',
 														alignItems: 'center',
+														marginLeft: 5,
 													}}
 													onPress={() => {
 														actualizarEstadoPedido(item, Constantes.ESTADO_PEDIDO_CANCELADO);

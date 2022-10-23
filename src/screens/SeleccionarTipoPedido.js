@@ -77,7 +77,7 @@ const SeleccionarTipoPedido = ({ navigation }) => {
 												</View>
 												<View>
 													<Text style={{ color: 'grey', fontSize: 16 }}>
-														De {item.pesoDesde}KM a {item.pesoHasta}KM
+														De {item.pesoDesde}KG a {item.pesoHasta}KG
 													</Text>
 													<Text style={{ color: 'grey' }}>${item.tarifa}</Text>
 												</View>

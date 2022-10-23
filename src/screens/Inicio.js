@@ -10,7 +10,7 @@ import * as Location from 'expo-location';
 import * as Constantes from '../utils/Constantes';
 import * as pedidosServicio from '../services/pedidos';
 import Spinner from 'react-native-loading-spinner-overlay';
-import { Ionicons, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ProgressSteps, ProgressStep } from 'react-native-progress-steps';
 
 const GOOGLE_API_KEY = process.env.PLACES_API_BASE.toString();
@@ -47,6 +47,11 @@ export default function ({ route, navigation }) {
 		) {
 			setCoordinates([...coordinates, params.pedidoCancelado]);
 		} // borrar esto??
+
+		if (params?.coordinates) {
+			console.log('coor', params?.coordinates.length);
+			setCoordinates(params.coordinates);
+		}
 	}, [params]);
 
 	useEffect(() => {
@@ -166,6 +171,7 @@ export default function ({ route, navigation }) {
 
 				if (newCoordinates.length > 0) {
 					setCoordinatesAux(newCoordinates);
+					setTiempoEntrePuntos(ubicacionChofer, coordinatesAux[1]);
 					setCoordinates([ubicacionChofer, coordinatesAux[1]]);
 				} else {
 					setCoordinates([]);
@@ -341,7 +347,7 @@ export default function ({ route, navigation }) {
 										style={{ width: '70%', flexDirection: 'row', borderRightWidth: 1, borderRightColor: '#d3d3d3' }}
 										onPress={() => {
 											// onPedidoPressed(item);
-											navigation.navigate('VerPedido', { pedido: item });
+											navigation.navigate('VerPedido', { pedido: item, coordinates, modoRecorrido });
 										}}
 									>
 										<View style={{ width: '8%', justifyContent: 'center', marginRight: 5 }}>
@@ -485,7 +491,7 @@ export default function ({ route, navigation }) {
 													marginBottom={40}
 												>
 													{coordinates.map((item, index) => {
-														return <ProgressStep label={`${index == 0 ? 'Tu' : 'Pedido'}`} removeBtnRow={true}></ProgressStep>;
+														return <ProgressStep label={`${index == 0 ? 'Tú' : 'Pedido'}`} removeBtnRow={true}></ProgressStep>;
 													})}
 												</ProgressSteps>
 											</>

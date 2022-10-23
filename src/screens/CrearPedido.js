@@ -9,24 +9,23 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Chip, Text as TextPaper } from 'react-native-paper';
 import * as pedidos from '../services/pedidos';
 import * as Constantes from '../utils/Constantes';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
+const horaDefault = new Date();
 
 export default function ({ route, navigation }) {
 	const { user, setUser } = useContext(AuthContext);
-	//const [chofer, setChofer] = useState({});
 	const [direccion, setDireccion] = useState(null);
 	const [cliente, setCliente] = useState({});
 	const [tipoPedido, setTipoPedido] = useState({});
-	const [estado, setEstado] = useState(estados[0]);
 	const [tarifa, setTarifa] = useState(0);
 	const [errors, setErrors] = useState({});
+	const [horaLimite, setHoraLimite] = useState(horaDefault);
+	const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
 	const params = route.params;
 
-	// //({ route, navigation })
-	// //const { usuario, unidad } = route.params;
-
 	useEffect(() => {
-		//setChofer(params.chofer);
 		if (params?.clienteSeleccionado) setCliente(params.clienteSeleccionado);
 		if (params?.tipoPedidoSeleccionado) setTipoPedido(params.tipoPedidoSeleccionado);
 		if (params?.tipoPedidoSeleccionado?.tarifa) setTarifa(params.tipoPedidoSeleccionado?.tarifa.toString());
@@ -38,7 +37,11 @@ export default function ({ route, navigation }) {
 		});
 	}, [params]);
 
-	const formSchema = yup.object({});
+	const formSchema = yup.object({
+		descripcion: yup.string(),
+		apartamento: yup.string(),
+		nroPuerta: yup.string(),
+	});
 
 	return (
 		<KeyboardAvoidingView behavior="height" enabled style={{ flex: 1 }}>
@@ -54,7 +57,11 @@ export default function ({ route, navigation }) {
 					}}
 				>
 					<Formik
-						initialValues={{}}
+						initialValues={{
+							descripcion: '',
+							apartamento: '',
+							nroPuerta: '',
+						}}
 						validationSchema={formSchema}
 						onSubmit={async (values, e) => {
 							try {
@@ -64,20 +71,8 @@ export default function ({ route, navigation }) {
 								});
 
 								if (direccion && tipoPedido && cliente && tarifa) {
-									const pedidoIngresado = {
-										idChofer: user.idUsuario,
-										idCliente: cliente.idCliente,
-										cliente: cliente,
-										tarifa: tarifa,
-										idTipoPedido: tipoPedido.idTipoPedido,
-										longitude: direccion.longitude,
-										latitude: direccion.latitude,
-										nombreDireccion: direccion.nombreDireccion,
-										key: direccion.nombreDireccion,
-										nombreCliente: cliente.nombre,
-									};
-
 									const pedidoIngresadoParsedServidor = {
+										...values,
 										idChofer: user.idUsuario,
 										idCliente: cliente.idCliente,
 										tarifa: parseInt(tarifa),
@@ -87,24 +82,17 @@ export default function ({ route, navigation }) {
 										nombreDireccion: direccion.nombreDireccion,
 										idTransporte: user.unidad.idUnidadTransporte,
 										estado: Constantes.ESTADO_PEDIDO_PENDIENTE,
+										horaLimite:
+											horaLimite && !isNaN(horaLimite) && horaLimite.getHours() != horaDefault.getHours() ? horaLimite : undefined,
 									};
 
 									const res = await pedidos.registrarPedido(pedidoIngresadoParsedServidor);
 
 									if (res.operationResult == Constantes.SUCCESS) {
 										navigation.navigate('Inicio', { pedidoIngresado: true });
-										// , {
-										// 	pedidoIngresado,
-										// }
 									} else if (res.operationResult == Constantes.ERROR) {
 										Alert.alert('Error', 'Ha ocurrido un error al crear el pedido');
 									}
-
-									// const res = pedido
-									// 	? await servicioPedidos.modificarPedido(pedidoIngresado)
-									// 	: await servicioPedidos.registrarPedido(pedidoIngresado);
-								} else {
-									// Alert.alert('Error', 'Ingrese los datos');
 								}
 							} catch (error) {
 								console.log(error);
@@ -122,7 +110,7 @@ export default function ({ route, navigation }) {
 										backgroundColor: themeColor.white,
 									}}
 								>
-									<Text>Direccion</Text>
+									<Text>Dirección</Text>
 									<TouchableOpacity
 										onPress={() => {
 											navigation.navigate('SeleccionarDireccion');
@@ -133,7 +121,7 @@ export default function ({ route, navigation }) {
 											style={{ padding: 10, marginTop: 2, backgroundColor: '#c9daff' }}
 										>
 											<TextPaper variant="titleMedium">
-												{direccion ? direccion.nombreDireccion : 'Haz click para selecionar una direccion'}
+												{direccion ? direccion.nombreDireccion : 'Presiona para seleccionar una dirección'}
 											</TextPaper>
 										</Chip>
 									</TouchableOpacity>
@@ -149,7 +137,7 @@ export default function ({ route, navigation }) {
 											icon={() => <Icon name={cliente?.nombre ? 'check-bold' : 'information'} size={17} color="black" />}
 										>
 											<TextPaper variant="titleMedium">
-												{cliente?.nombre ? cliente.nombre : 'Haz click para selecionar un usuario'}
+												{cliente?.nombre ? cliente.nombre : 'Presiona para seleccionar un cliente'}
 											</TextPaper>
 										</Chip>
 									</TouchableOpacity>
@@ -169,21 +157,11 @@ export default function ({ route, navigation }) {
 											icon={() => <Icon name={tipoPedido?.nombre ? 'check-bold' : 'information'} size={17} color="black" />}
 										>
 											<TextPaper variant="titleMedium">
-												{tipoPedido?.nombre ? tipoPedido.nombre : 'Haz click para selecionar un tipo'}
+												{tipoPedido?.nombre ? tipoPedido.nombre : 'Presiona para seleccionar un tipo'}
 											</TextPaper>
 										</Chip>
-										{/* <View
-												style={{
-													flexDirection: 'row',
-													backgroundColor: '#f6f6f6',
-													borderRadius: 10,
-													padding: 5,
-													alignItems: 'center',
-													width: '100%',
-												}}
-											> */}
 									</TouchableOpacity>
-									{tipoPedido.pesoDesde && (
+									{tipoPedido.pesoDesde ? (
 										<>
 											<Text style={{ marginTop: 2 }}>
 												<Text variant="titleSmall">{'Tarifa: '}</Text>
@@ -212,7 +190,7 @@ export default function ({ route, navigation }) {
 													}}
 													variant="titleMedium"
 												>
-													{tipoPedido.pesoDesde + ' km'}
+													{tipoPedido.pesoDesde + ' kg'}
 												</Text>
 
 												<Text variant="titleMedium">{'  Peso hasta: '}</Text>
@@ -226,55 +204,94 @@ export default function ({ route, navigation }) {
 													}}
 													variant="titleMedium"
 												>
-													{tipoPedido.pesoHasta + ' km'}
+													{tipoPedido.pesoHasta + ' kg'}
 												</Text>
 											</Text>
 										</>
+									) : (
+										<></>
 									)}
 									<Text size="sm" style={styles.error}>
 										{errors.tipoPedido && 'Ingrese un tipo de pedido'}
 									</Text>
 
-									<Text style={{ marginTop: 15 }}>Tarifa</Text>
-									<TextInput
-										containerStyle={{ marginTop: 15 }}
-										placeholder="Introduce tu tarifa"
-										autoCapitalize="none"
-										autoCompleteType="off"
-										autoCorrect={false}
-										keyboardType="numeric"
-										onChangeText={(t) => setTarifa(t)}
-										value={tarifa}
-									/>
-									{/* <Text>Tamaño</Text>
-									<TextInput
-										containerStyle={{ marginTop: 15 }}
-										placeholder="Introduce tu tamaño"
-										autoCapitalize="none"
-										autoCompleteType="off"
-										autoCorrect={false}
-										onChangeText={props.handleChange('tamaño')}
-										value={props.values.tamaño}
-										onBlur={props.handleBlur('tamaño')}
-									/>
-									<Text size="sm" style={styles.error}>
-										{props.touched.tamaño && props.errors.tamaño}
-									</Text>
+									<Text>Descripción</Text>
 
-									<Text>Peso</Text>
 									<TextInput
-										containerStyle={{ marginTop: 15 }}
-										placeholder="Introduce tu peso"
+										containerStyle={{ marginTop: 5 }}
+										placeholder="Introduce una descripción"
 										autoCapitalize="none"
 										autoCompleteType="off"
 										autoCorrect={false}
-										onChangeText={props.handleChange('peso')}
-										value={props.values.peso}
-										onBlur={props.handleBlur('peso')}
+										onChangeText={props.handleChange('descripcion')}
+										value={props.values.descripcion}
+										onBlur={props.handleBlur('descripcion')}
 									/>
-									<Text size="sm" style={styles.error}>
-										{props.touched.peso && props.errors.peso}
-									</Text> */}
+
+									{horaLimite ? (
+										<>
+											<Text style={{ marginTop: 15 }}>Hora Límite</Text>
+											<TouchableOpacity
+												onPress={() => {
+													setDatePickerVisibility(true);
+												}}
+											>
+												<Chip
+													style={{ padding: 10, marginTop: 2, backgroundColor: '#ededed' }}
+													icon={() => <Icon name={cliente?.nombre ? 'check-bold' : 'information'} size={17} color="black" />}
+												>
+													<TextPaper variant="titleMedium">
+														{!isNaN(horaLimite) && horaLimite.getHours() != horaDefault.getHours()
+															? `${horaLimite.getHours()}:${horaLimite.getMinutes()}`
+															: 'Presiona para ingresar una hora límite'}
+													</TextPaper>
+												</Chip>
+											</TouchableOpacity>
+										</>
+									) : (
+										<></>
+									)}
+
+									{isDatePickerVisible && (
+										<DateTimePicker
+											testID="dateTimePicker"
+											value={horaLimite}
+											mode={'time'}
+											is24Hour={true}
+											onChange={(e, selectedDate) => {
+												setDatePickerVisibility(false);
+												if (selectedDate) setHoraLimite(selectedDate);
+												else setHoraLimite(horaDefault);
+											}}
+										/>
+									)}
+
+									<Text style={{ marginTop: 15 }}>Apartamento</Text>
+
+									<TextInput
+										containerStyle={{ marginTop: 5 }}
+										placeholder="Introduce un apartamento"
+										autoCapitalize="none"
+										autoCompleteType="off"
+										autoCorrect={false}
+										onChangeText={props.handleChange('apartamento')}
+										value={props.values.apartamento}
+										onBlur={props.handleBlur('apartamento')}
+									/>
+
+									<Text style={{ marginTop: 15 }}>Número de puerta</Text>
+
+									<TextInput
+										containerStyle={{ marginTop: 5 }}
+										placeholder="Introduce un número de puerta"
+										autoCapitalize="none"
+										autoCompleteType="off"
+										autoCorrect={false}
+										onChangeText={props.handleChange('nroPuerta')}
+										value={props.values.nroPuerta}
+										onBlur={props.handleBlur('nroPuerta')}
+									/>
+
 									<View
 										style={{
 											flexDirection: 'row',

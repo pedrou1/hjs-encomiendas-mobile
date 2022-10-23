@@ -7,7 +7,6 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 
 export default function ({ navigation }) {
 	const { user, setUser } = useContext(AuthContext);
-	console.log('user', user);
 
 	return (
 		<Layout>
