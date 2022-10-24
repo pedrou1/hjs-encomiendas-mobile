@@ -30,8 +30,25 @@ export default function ({ navigation }) {
 							marginTop: 10,
 						}}
 					>
-						<Text>{` ${user.nombre} ${user.apellido}`}</Text>
+						<Text>{` ${user.nombre} ${user.apellido ? user.apellido : ''}`}</Text>
 					</View>
+
+					{(user.ci || user.rut) && (
+						<View
+							style={{
+								backgroundColor: '#e0e0e0',
+								borderRadius: 15,
+								padding: 10,
+								justifyContent: 'center',
+								marginTop: 5,
+							}}
+						>
+							<Text>
+								<MaterialCommunityIcons name="fingerprint" size={20} color="black" />
+								{user.ci ? user.ci : user.rut}
+							</Text>
+						</View>
+					)}
 
 					{user.usuario && (
 						<View

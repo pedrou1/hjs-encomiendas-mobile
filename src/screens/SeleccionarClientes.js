@@ -30,7 +30,7 @@ const SeleccionarClientes = ({ navigation }) => {
 	const selectClientePedido = async (cliente) => {
 		// seleccionar cliente y redireccionar
 		navigation.navigate('CrearPedido', {
-			clienteSeleccionado: { idCliente: cliente.idUsuario, nombre: cliente.nombre + ' ' + cliente.apellido },
+			clienteSeleccionado: { idCliente: cliente.idUsuario, nombre: `${cliente.nombre} ${cliente.apellido ? cliente.apellido : ''}` },
 		});
 	};
 	return (
@@ -47,7 +47,7 @@ const SeleccionarClientes = ({ navigation }) => {
 							// obtiene de a 10 usuarios
 							const paginationData = { PageIndex: clientes.length, PageSize: 10 };
 							paginationData.Tipo = Constantes.ID_CLIENTE;
-							const res = await servicioUsuarios.obtenerUsuarios(paginationData); //FIXME TRAER SOLO CATEGORIA CLIENTES
+							const res = await servicioUsuarios.obtenerUsuarios(paginationData);
 							if (res && res.operationResult == Constantes.SUCCESS && res.usuarios.length > 0) {
 								setClientes([...clientes, ...res.usuarios]);
 							}
@@ -67,7 +67,8 @@ const SeleccionarClientes = ({ navigation }) => {
 										<Card.Content>
 											<View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 												<View>
-													<Title>{`${item.nombre} ${item.apellido}`}</Title>
+													<Title>{`${item.nombre} ${item.apellido ? item.apellido : ''}`}</Title>
+													<Paragraph>{item.ci ? item.ci : item.rut}</Paragraph>
 													<Paragraph>{item.direccion ? item.direccion : item.telefono ? item.telefono : ''}</Paragraph>
 												</View>
 												<View style={{ alignSelf: 'center' }}>{myIcon}</View>

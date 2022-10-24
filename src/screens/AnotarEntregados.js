@@ -74,7 +74,12 @@ export default function ({ navigation }) {
 										<Card.Content>
 											<View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 												<View style={{ borderRightWidth: 1, borderRightColor: '#d3d3d3', width: '70%' }}>
-													<Text variant="titleLarge">{`${item.cliente.nombre} ${item.cliente.apellido}`}</Text>
+													<Text variant="titleLarge">{`${item.cliente.nombre} ${
+														item.cliente.apellido ? item.cliente.apellido : ''
+													}`}</Text>
+													<Paragraph>{`${item.cliente?.ci ? `CI: ${item.cliente?.ci}` : `RUT: ${item.cliente?.rut}`}`}</Paragraph>
+													{item.cliente?.telefono ? <Paragraph>{`Tel: ${item.cliente?.telefono}`}</Paragraph> : <></>}
+													{item.cliente?.telefono2 ? <Paragraph>{`Tel2: ${item.cliente?.telefono2}`}</Paragraph> : <></>}
 													<View
 														style={{
 															backgroundColor: '#f6f6f6',
@@ -115,9 +120,17 @@ export default function ({ navigation }) {
 														) : (
 															<></>
 														)}
-														{item.cliente?.telefono ? <Paragraph>{`${item.cliente?.telefono}`}</Paragraph> : <></>}
-														{item.cliente?.telefono2 ? <Paragraph>{`${item.cliente?.telefono2}`}</Paragraph> : <></>}
+
 														{item.descripcion ? <Paragraph>{`${item.descripcion}`}</Paragraph> : <></>}
+														{item.fechaRetiro ? (
+															<Paragraph>{`Fecha: ${new Date(item.fechaRetiro).toLocaleDateString('es-ES', {
+																year: 'numeric',
+																month: 'numeric',
+																day: 'numeric',
+															})}`}</Paragraph>
+														) : (
+															<></>
+														)}
 													</View>
 												</View>
 												<TouchableOpacity

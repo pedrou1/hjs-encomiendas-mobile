@@ -19,7 +19,7 @@ export default function ({ route, navigation }) {
 	const { user, setUser } = useContext(AuthContext);
 	const bottomSheetRef = useRef(null);
 	const mapViewRef = useRef(null);
-	const [ubicacionChofer, setUbicacionChofer] = useState({ latitude: -34.90658452897425, longitude: -56.18052889728755, nombreDireccion: 'Tú' });
+	const [ubicacionChofer, setUbicacionChofer] = useState({ latitude: -34.90018667474896, longitude: -56.164310602362605, nombreDireccion: 'Tú' });
 	const [optimizando, setOptimizando] = useState(false);
 	const [modoRecorrido, setModoRecorrido] = useState(false);
 	const snapPoints = useMemo(() => ['15%', '80%'], []);
@@ -35,8 +35,8 @@ export default function ({ route, navigation }) {
 	const initialPosition = {
 		latitude: ubicacionChofer.latitude,
 		longitude: ubicacionChofer.longitude,
-		latitudeDelta: 0.09,
-		longitudeDelta: 0.035,
+		latitudeDelta: 0.15,
+		longitudeDelta: 0.1,
 	};
 
 	useEffect(() => {
@@ -111,7 +111,7 @@ export default function ({ route, navigation }) {
 				return {
 					...p,
 					key: p.nombreDireccion,
-					nombreCliente: p.cliente.nombre + ' ' + p.cliente.apellido,
+					nombreCliente: p.cliente.nombre + ' ' + p.cliente.apellido ? p.cliente.apellido : '',
 				};
 			});
 			await optimizarPedidosYGuardar(pedidosParsed, ubicacionChofer);
@@ -189,8 +189,22 @@ export default function ({ route, navigation }) {
 				break;
 			case Constantes.ESTADO_PEDIDO_CANCELADO:
 				pedido.estado == Constantes.ESTADO_PEDIDO_CANCELADO;
+				const newCoordinatesdel = coordinatesAux.filter((c) => c.latitude != pedido.latitude && c.longitude != pedido.longitude);
 				const resp = await pedidosServicio.modificarEstadoPedido(pedido.idPedido, Constantes.ESTADO_PEDIDO_CANCELADO);
-				getPedidos();
+
+				if (newCoordinatesdel.length > 0) {
+					setCoordinatesAux(newCoordinatesdel);
+					setTiempoEntrePuntos(ubicacionChofer, coordinatesAux[1]);
+					setCoordinates([ubicacionChofer, coordinatesAux[1]]);
+				} else {
+					setCoordinates([]);
+					setModoRecorrido(false);
+					Alert.alert('Completado', 'No tienes mas pedidos por hoy!');
+				}
+				setTimeout(() => {
+					setLoading(false);
+					bottomSheetRef.current?.snapToIndex(0);
+				}, 200);
 				//cancelado
 				break;
 			default:
@@ -349,8 +363,9 @@ export default function ({ route, navigation }) {
 									<TouchableOpacity
 										style={{ width: '70%', flexDirection: 'row', borderRightWidth: 1, borderRightColor: '#d3d3d3' }}
 										onPress={() => {
-											// onPedidoPressed(item);
-											navigation.navigate('VerPedido', { pedido: item, coordinates, modoRecorrido });
+											if (item.nombreDireccion != 'Tú') {
+												navigation.navigate('VerPedido', { pedido: item, coordinates, modoRecorrido });
+											}
 										}}
 									>
 										<View style={{ width: '8%', justifyContent: 'center', marginRight: 5 }}>

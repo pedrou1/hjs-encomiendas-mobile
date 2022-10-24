@@ -137,7 +137,9 @@ export default function ({ route, navigation }) {
 											icon={() => <Icon name={cliente?.nombre ? 'check-bold' : 'information'} size={17} color="black" />}
 										>
 											<TextPaper variant="titleMedium">
-												{cliente?.nombre ? cliente.nombre : 'Presiona para seleccionar un cliente'}
+												{cliente?.nombre
+													? `${cliente.nombre} ${cliente.apellido ? cliente.apellido : ''}`
+													: 'Presiona para seleccionar un cliente'}
 											</TextPaper>
 										</Chip>
 									</TouchableOpacity>
@@ -286,6 +288,8 @@ export default function ({ route, navigation }) {
 										placeholder="Introduce un número de puerta"
 										autoCapitalize="none"
 										autoCompleteType="off"
+										keyboardType="numeric"
+										contextMenuHidden={true}
 										autoCorrect={false}
 										onChangeText={props.handleChange('nroPuerta')}
 										value={props.values.nroPuerta}

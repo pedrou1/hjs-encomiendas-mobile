@@ -76,6 +76,7 @@ export default function ({ route, navigation }) {
 									}}
 								>
 									<Text variant="headlineMedium">{`${pedido.cliente.nombre} ${pedido.cliente.apellido ? pedido.cliente.apellido : ''}`}</Text>
+									<Text variant="headlineMedium">{` - ${pedido.cliente.ci ? pedido.cliente.ci : pedido.cliente.rut}`}</Text>
 								</View>
 
 								<Text style={{ marginTop: 15 }}>Tipo</Text>
@@ -303,7 +304,7 @@ export default function ({ route, navigation }) {
 								)}
 							</View>
 						)}
-						{params?.coordinates && params.coordinates.length > 2 && !params.modoRecorrido ? (
+						{params?.coordinates && params.coordinates.length > 1 && !params.modoRecorrido ? (
 							<View style={{ paddingLeft: 90, paddingRight: 90, backgroundColor: 'white' }}>
 								<Button
 									icon="order-bool-ascending"

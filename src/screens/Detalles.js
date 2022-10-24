@@ -124,7 +124,8 @@ export default function (props) {
 												<View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 													<View style={{ borderRightWidth: 1, borderRightColor: '#d3d3d3', width: '80%' }}>
 														<Title>{`${item.tipoPedido.nombre} $${item.tipoPedido.tarifa}`}</Title>
-														<Paragraph>{`${item.cliente.nombre} ${item.cliente.apellido}`}</Paragraph>
+														<Paragraph>{`${item.cliente.nombre} ${item.cliente.apellido ? item.cliente.apellido : ''}`}</Paragraph>
+														<Paragraph>{`${item.cliente.ci ? item.cliente.ci : item.cliente.rut}`}</Paragraph>
 														<Paragraph>
 															{item.nombreDireccion.substring(0, 40) + `${item.nombreDireccion.length > 55 ? '...' : ''}`}
 														</Paragraph>

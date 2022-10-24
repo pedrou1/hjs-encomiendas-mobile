@@ -118,7 +118,10 @@ export default function ({ navigation }) {
 									setTimeout(function () {
 										calloutRef.current.showCallout();
 									}, 1);
-								}, 1000);
+									if (autocompleteRef.current && autocompleteRef.current?.isFocused()) {
+										bottomSheetRef.current?.snapToIndex(0);
+									}
+								}, 1500);
 							}}
 							query={{
 								key: GOOGLE_API_KEY,
