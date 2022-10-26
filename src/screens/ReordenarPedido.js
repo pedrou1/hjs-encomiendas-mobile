@@ -84,7 +84,6 @@ export default function ({ route, navigation }) {
 												<TouchableOpacity
 													style={{ width: '70%', flexDirection: 'row', borderRightWidth: 1, borderRightColor: '#d3d3d3' }}
 													onPress={() => {
-														// onPedidoPressed(item);
 														navigation.navigate('VerPedido', { pedido: item });
 													}}
 												>

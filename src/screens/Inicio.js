@@ -46,7 +46,7 @@ export default function ({ route, navigation }) {
 			!coordinates.find((c) => c.latitude === params.pedidoCancelado.latitude && c.longitude === params.pedidoCancelado.longitude)
 		) {
 			setCoordinates([...coordinates, params.pedidoCancelado]);
-		} // borrar esto??
+		}
 
 		if (params?.coordinates) {
 			console.log('coor', params?.coordinates.length);
@@ -216,7 +216,6 @@ export default function ({ route, navigation }) {
 	distance.apiKey = GOOGLE_API_KEY;
 
 	const setTiempoEntrePuntos = async (origin, destination) => {
-		// comparar coordenadas actuales con cada una de las coordenadas de la lista
 		origin = `${origin.latitude},${origin.longitude}`;
 		destination = `${destination.latitude},${destination.longitude}`;
 		distance
@@ -227,7 +226,6 @@ export default function ({ route, navigation }) {
 			})
 			.then(function (data) {
 				setDuracionPedidoRecorriendo({ tiempo: data.duration, distancia: data.distance });
-				//let sorted = els.sort((a, b) => a.distance.value - b.distance.value);
 			})
 			.catch(function (err) {
 				console.log(err);
@@ -579,42 +577,3 @@ const styles = StyleSheet.create({
 		backgroundColor: '#1b2a4a',
 	},
 });
-
-// var distance = require('hpsweb-google-distance');
-// distance.apiKey = GOOGLE_API_KEY;
-//comparar coordenadas actuales con cada una de las coordenadas de la lista
-// useEffect(() => {
-// 	distance
-// 		.get({
-// 			origin: '-34.90703478690642, -56.200666546312526',
-// 			destination: '-34.8938251, -56.1663526',
-// 		})
-// 		.then(function (data) {
-// 			console.log(data);
-// 			let sorted = els.sort((a, b) => a.distance.value - b.distance.value);
-// 		})
-// 		.catch(function (err) {
-// 			console.log(err);
-// 		});
-// });
-
-// {
-// 	nombreDireccion: 'Plaza indep',
-// 	nombreCliente: 'Juan Perez',
-// 	latitude: -34.90703478690642,
-// 	longitude: -56.200666546312526,
-// 	key: 'Direccion1',
-// 	estado: 1,
-// },
-// { nombreDireccion: 'tres cr', nombreCliente: 'Juan Perez', latitude: -34.8938251, longitude: -56.1663526, key: 'Direcc11ion1', estado: 1 },
-// { nombreDireccion: 'Antel', nombreCliente: 'Juan Perez', latitude: -34.906894010482546, longitude: -56.19176161236216, key: 'Direccion2' },
-// { nombreDireccion: 'loi', nombreCliente: 'Juan Perez', latitude: -34.9084324, longitude: -56.1991574, key: '2222' },
-
-//esto estaba en useffect
-// al volver a esta pantalla al crear un pedido si no existe el mismo pedido se agrega a la lista
-// if (
-// 	params?.pedidoIngresado &&
-// 	!coordinates.find((c) => c.latitude === params.pedidoIngresado.latitude && c.longitude === params.pedidoIngresado.longitude)
-// ) {
-// 	setCoordinates([...coordinates, params.pedidoIngresado]);
-// }

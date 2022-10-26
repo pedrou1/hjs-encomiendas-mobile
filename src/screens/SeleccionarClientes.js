@@ -44,7 +44,6 @@ const SeleccionarClientes = ({ navigation }) => {
 				{!loading ? (
 					<FlatList
 						onEndReached={async () => {
-							// obtiene de a 10 usuarios
 							const paginationData = { PageIndex: clientes.length, PageSize: 10 };
 							paginationData.Tipo = Constantes.ID_CLIENTE;
 							const res = await servicioUsuarios.obtenerUsuarios(paginationData);

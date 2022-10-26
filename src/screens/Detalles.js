@@ -65,15 +65,6 @@ export default function (props) {
 					}}
 				>
 					{!loading && pedidos?.length ? (
-						// <Chip
-						// 	icon="checkbox-marked-circle-outline"
-						// 	mode="outlined"
-						// 	onPress={() => {
-						// 		// navigation.navigate('PantallaTest');
-						// 	}}
-						// >
-						// 	Anotar entregados
-						// </Chip>
 						<Button
 							label="Anotar entregados"
 							icon="checkbox-marked-circle-outline"
@@ -84,7 +75,6 @@ export default function (props) {
 							mode="outlined"
 							customSize={45}
 							onPress={async () => {
-								// await reloadRoute();
 								navigation.navigate('AnotarEntregados');
 							}}
 						>
@@ -114,7 +104,6 @@ export default function (props) {
 							renderItem={({ item, i }) => (
 								<TouchableHighlight
 									onPress={() => {
-										// selectClientePedido(item);
 										if (item.idPedido == 20) navigation.navigate('Inicio', { pedidoCancelado: item });
 									}}
 								>

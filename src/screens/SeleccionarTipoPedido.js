@@ -50,7 +50,6 @@ const SeleccionarTipoPedido = ({ navigation }) => {
 				{!loading ? (
 					<FlatList
 						onEndReached={async () => {
-							// obtiene de a 10 usuarios
 							const paginationData = { PageIndex: tiposPedidos.length, PageSize: 10 };
 							const res = await servicioTipoPedidos.obtenerTiposPedidos(paginationData);
 

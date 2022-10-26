@@ -13,9 +13,9 @@ export const ID_CHOFER = 2;
 export const ID_ADMINISTRADOR = 3;
 
 export const ESTADO_PEDIDO_PENDIENTE = 1;
-export const ESTADO_PEDIDO_RETIRADO = 2; // retirado
-export const ESTADO_PEDIDO_ENTREGADO = 3; //entregado
-export const ESTADO_PEDIDO_CANCELADO = 4; // cancelado
+export const ESTADO_PEDIDO_RETIRADO = 2;
+export const ESTADO_PEDIDO_ENTREGADO = 3;
+export const ESTADO_PEDIDO_CANCELADO = 4;
 
 export const estados = [
 	{ label: 'Pendiente', value: 1 },
