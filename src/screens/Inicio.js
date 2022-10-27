@@ -1,5 +1,5 @@
 import React, { useContext, useState, useRef, useMemo, useEffect } from 'react';
-import { View, Linking, TouchableOpacity, StyleSheet, Dimensions, Alert } from 'react-native';
+import { View, Linking, TouchableOpacity, StyleSheet, Dimensions, Alert, Image } from 'react-native';
 import { Layout, Text } from 'react-native-rapi-ui';
 import { AuthContext } from '../provider/AuthProvider';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
@@ -26,9 +26,9 @@ export default function ({ route, navigation }) {
 	const [loading, setLoading] = useState(false);
 	const [coordinates, setCoordinates] = useState([]);
 	const [coordinatesAux, setCoordinatesAux] = useState([]);
-	const [ordenPedidos, setOrdenPedidos] = useState([]);
 	const [duracionPedidoRecorriendo, setDuracionPedidoRecorriendo] = useState(null);
 	const [contadorCompletado, setContadorCompletado] = useState(1);
+	const [loadingBtnRecorrido, setLoadingBtnRecorrido] = useState(false);
 
 	const params = route.params;
 
@@ -52,6 +52,7 @@ export default function ({ route, navigation }) {
 			console.log('coor', params?.coordinates.length);
 			setCoordinates(params.coordinates);
 		}
+		setLoadingBtnRecorrido(false);
 	}, [params]);
 
 	useEffect(() => {
@@ -84,7 +85,6 @@ export default function ({ route, navigation }) {
 			const waypoints = pedidosParsed;
 			const destination = ubicacionChofer;
 			const orden = await pedidosServicio.optimizarRuta(origin, waypoints, destination);
-			setOrdenPedidos(orden);
 
 			let arra = [];
 			if (orden?.length >= 2) {
@@ -100,8 +100,10 @@ export default function ({ route, navigation }) {
 		}
 	};
 
+	//obtiene los pedidos de hoy del chofer
 	const getPedidos = async (ubicacionChofer) => {
-		//obtiene los pedidos de hoy del chofer
+		if (modoRecorrido) setModoRecorrido(false);
+
 		const params = {};
 		params.idUsuarioChofer = user.idUsuario;
 		params.fecha = new Date();
@@ -146,11 +148,16 @@ export default function ({ route, navigation }) {
 		setModoRecorrido(!modoRecorrido);
 		if (modoRecorridoIn) setCoordinates(coordinatesAux);
 		else {
-			setCoordinatesAux([...coordinates]); //.shift()
-			//set el primero que no esta entregado y borrarlo de coordinates aux
-			setCoordinates([ubicacionChofer, coordinates[0]]);
-			setTiempoEntrePuntos(ubicacionChofer, coordinates[0]);
+			if (coordinates.length > 0) {
+				setCoordinatesAux([...coordinates]);
+				//set el primero que no esta entregado y borrarlo de coordinates aux
+				setCoordinates([ubicacionChofer, coordinates[0]]);
+				setTiempoEntrePuntos(ubicacionChofer, coordinates[0]);
+			}
 		}
+		setTimeout(() => {
+			setLoadingBtnRecorrido(false);
+		}, 200);
 	};
 
 	const abrirGPS = () => {
@@ -188,6 +195,7 @@ export default function ({ route, navigation }) {
 				setContadorCompletado(contadorCompletado + 1);
 				break;
 			case Constantes.ESTADO_PEDIDO_CANCELADO:
+				setLoading(true);
 				pedido.estado == Constantes.ESTADO_PEDIDO_CANCELADO;
 				const newCoordinatesdel = coordinatesAux.filter((c) => c.latitude != pedido.latitude && c.longitude != pedido.longitude);
 				const resp = await pedidosServicio.modificarEstadoPedido(pedido.idPedido, Constantes.ESTADO_PEDIDO_CANCELADO);
@@ -210,6 +218,8 @@ export default function ({ route, navigation }) {
 			default:
 				break;
 		}
+
+		setLoadingBtnRecorrido(false);
 	};
 
 	var distance = require('hpsweb-google-distance');
@@ -305,10 +315,11 @@ export default function ({ route, navigation }) {
 										key={marker.nombreDireccion}
 										coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
 										//pinColor="#3d34eb"
-										image={require('../assets/route-marker.png')}
+										// image={require('../assets/route-marker.png')}
 									>
+										<Image source={require('../assets/route-marker.png')} style={{ height: 40, width: 30 }} />
 										<Callout>
-											<Text>{marker.nombreDireccion}</Text>
+											<Text>{`${index + 1}`}</Text>
 										</Callout>
 									</Marker>
 								) : (
@@ -316,10 +327,12 @@ export default function ({ route, navigation }) {
 										key={marker.nombreDireccion}
 										onPress={() => null}
 										coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
-										image={require('../assets/current-route-marker.png')}
+										// image={require('../assets/current-route-marker.png')}
 									>
+										<Image source={require('../assets/current-route-marker.png')} style={{ height: 40, width: 30 }} />
 										<Callout>
-											<Text>{marker.nombreDireccion}</Text>
+											{/* <View></View> */}
+											<Text>{`${index + 1}`}</Text>
 										</Callout>
 									</Marker>
 								)}
@@ -344,8 +357,9 @@ export default function ({ route, navigation }) {
 					</View>
 					<BottomSheetFlatList
 						data={coordinates}
+						keyExtractor={(item, index) => item.idPedido || index.toString()}
 						renderItem={({ item, index }) => (
-							<View key={item.nombreDireccion}>
+							<View key={item.idPedido || item.nombreDireccion}>
 								<View
 									style={{
 										flexDirection: 'row',
@@ -420,7 +434,9 @@ export default function ({ route, navigation }) {
 													justifyContent: 'center',
 													alignItems: 'center',
 												}}
+												disabled={loadingBtnRecorrido}
 												onPress={() => {
+													setLoadingBtnRecorrido(true);
 													actualizarEstadoPedido(item, Constantes.ESTADO_PEDIDO_CANCELADO);
 												}}
 											>
@@ -436,7 +452,9 @@ export default function ({ route, navigation }) {
 													justifyContent: 'center',
 													alignItems: 'center',
 												}}
+												disabled={loadingBtnRecorrido}
 												onPress={() => {
+													setLoadingBtnRecorrido(true);
 													actualizarEstadoPedido(item, Constantes.ESTADO_PEDIDO_RETIRADO);
 												}}
 											>
@@ -527,12 +545,12 @@ export default function ({ route, navigation }) {
 						<Button
 							icon={modoRecorrido ? 'window-close' : 'arrow-right'}
 							mode="contained"
-							style={{ marginLeft: 15, marginRight: 15, marginBottom: 10, backgroundColor: '#293f6e' }}
+							style={{ marginLeft: 15, marginRight: 15, marginBottom: 10, backgroundColor: loadingBtnRecorrido ? '#676f82' : '#293f6e' }}
 							labelStyle={{ fontSize: 25 }}
+							disabled={loadingBtnRecorrido}
 							onPress={() => {
-								setTimeout(() => {
-									activarModoRecorrido(modoRecorrido);
-								}, 400);
+								setLoadingBtnRecorrido(true);
+								activarModoRecorrido(modoRecorrido);
 							}}
 						>
 							<Text style={{ fontSize: 17, color: 'white' }}>{modoRecorrido ? 'Terminar recorrido' : 'Iniciar recorrido'}</Text>
@@ -546,7 +564,9 @@ export default function ({ route, navigation }) {
 							mode="contained"
 							style={{ marginLeft: 15, marginRight: 15, marginBottom: 10, backgroundColor: '#485778' }}
 							labelStyle={{ fontSize: 25 }}
-							onPress={() => navigation.navigate('SeleccionarDireccion')}
+							onPress={() => {
+								navigation.navigate('SeleccionarDireccion');
+							}}
 						>
 							<Text style={{ fontSize: 17, color: 'white' }}>Nuevo</Text>
 						</Button>
