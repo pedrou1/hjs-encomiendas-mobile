@@ -132,7 +132,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'com.hjs.encomiendas'
+        applicationId 'com.pap.transportes'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

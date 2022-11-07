@@ -69,9 +69,9 @@ export const otenerPedidosChoferPosteriores = async (idChofer) => {
 	} catch (err) {}
 };
 
-export const modificarEstadoPedido = async (idPedido, estado) => {
+export const modificarEstadoPedido = async (idPedido, estado, metros = 0) => {
 	try {
-		const res = await api.put(controllerEndpoint + `/modificar/estado/${idPedido}/${estado}`);
+		const res = await api.put(controllerEndpoint + `/modificar/estado/${idPedido}/${estado}/${metros}`);
 
 		if (res.status == 200) {
 			return res.data;

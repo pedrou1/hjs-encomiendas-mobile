@@ -177,7 +177,8 @@ export default function ({ route, navigation }) {
 				setLoading(true);
 				//elimina el pedido que se marco como retirado de la lista
 				const newCoordinates = coordinatesAux.filter((c) => c.latitude != pedido.latitude && c.longitude != pedido.longitude);
-				const res = await pedidosServicio.modificarEstadoPedido(pedido.idPedido, Constantes.ESTADO_PEDIDO_RETIRADO);
+
+				const res = await pedidosServicio.modificarEstadoPedido(pedido.idPedido, Constantes.ESTADO_PEDIDO_RETIRADO, duracionPedidoRecorriendo.metros);
 
 				if (newCoordinates.length > 0) {
 					setCoordinatesAux(newCoordinates);
@@ -198,7 +199,7 @@ export default function ({ route, navigation }) {
 				setLoading(true);
 				pedido.estado == Constantes.ESTADO_PEDIDO_CANCELADO;
 				const newCoordinatesdel = coordinatesAux.filter((c) => c.latitude != pedido.latitude && c.longitude != pedido.longitude);
-				const resp = await pedidosServicio.modificarEstadoPedido(pedido.idPedido, Constantes.ESTADO_PEDIDO_CANCELADO);
+				const resp = await pedidosServicio.modificarEstadoPedido(pedido.idPedido, Constantes.ESTADO_PEDIDO_CANCELADO, 0);
 
 				if (newCoordinatesdel.length > 0) {
 					setCoordinatesAux(newCoordinatesdel);
@@ -235,7 +236,7 @@ export default function ({ route, navigation }) {
 				language: 'es',
 			})
 			.then(function (data) {
-				setDuracionPedidoRecorriendo({ tiempo: data.duration, distancia: data.distance });
+				setDuracionPedidoRecorriendo({ tiempo: data.duration, distancia: data.distance, metros: data.distanceValue });
 			})
 			.catch(function (err) {
 				console.log(err);

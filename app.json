@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "hjsEncomiendas",
-    "slug": "hjsEncomiendas",
+    "name": "PAP Transportes",
+    "slug": "PAP Transportes",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -23,7 +23,7 @@
       "favicon": "./assets/favicon.png"
     },
     "android": {
-      "package": "com.hjs.encomiendas"
+      "package": "com.pap.transportes"
     }
   }
 }

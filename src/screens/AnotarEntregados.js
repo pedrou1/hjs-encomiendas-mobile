@@ -33,12 +33,12 @@ export default function ({ navigation }) {
 		switch (estado) {
 			case Constantes.ESTADO_PEDIDO_ENTREGADO:
 				pedido.estado == Constantes.ESTADO_PEDIDO_ENTREGADO;
-				const res = await pedidosService.modificarEstadoPedido(pedido.idPedido, Constantes.ESTADO_PEDIDO_ENTREGADO);
+				const res = await pedidosService.modificarEstadoPedido(pedido.idPedido, Constantes.ESTADO_PEDIDO_ENTREGADO, 0);
 				getPedidos();
 				break;
 			case Constantes.ESTADO_PEDIDO_CANCELADO:
 				pedido.estado == Constantes.ESTADO_PEDIDO_CANCELADO;
-				const resp = await pedidosService.modificarEstadoPedido(pedido.idPedido, Constantes.ESTADO_PEDIDO_CANCELADO);
+				const resp = await pedidosService.modificarEstadoPedido(pedido.idPedido, Constantes.ESTADO_PEDIDO_CANCELADO, 0);
 				getPedidos();
 				//cancelado
 				break;

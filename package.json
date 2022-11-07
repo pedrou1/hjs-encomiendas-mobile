@@ -18,8 +18,10 @@
     "babel-plugin-inline-dotenv": "^1.7.0",
     "expo": "~44.0.0",
     "expo-asset": "~8.4.5",
+    "expo-constants": "^13.2.4",
     "expo-font": "~10.0.4",
     "expo-location": "~14.0.1",
+    "expo-splash-screen": "~0.14.1",
     "expo-status-bar": "~1.2.0",
     "formik": "^2.2.9",
     "hpsweb-google-distance": "^1.1.2",
@@ -42,11 +44,13 @@
     "react-native-unimodules": "^0.14.10",
     "react-native-web": "0.17.1",
     "tailwind-react-native-classnames": "^1.5.1",
-    "expo-splash-screen": "~0.14.1",
     "yup": "^0.32.11"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9"
+  },
+  "resolutions": {
+    "expo-file-system@13.1.0": "patch:expo-file-system@npm:13.1.0#.yarn/patches/expo-file-system-npm-13.1.0-4d3bf24457"
   },
   "private": true,
   "name": "hjs-encomiendas-mobile",
